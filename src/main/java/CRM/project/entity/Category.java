@@ -11,6 +11,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "request_category")
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 public class Category extends TimeClass {

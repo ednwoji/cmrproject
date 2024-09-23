@@ -54,7 +54,9 @@ public class UserserviceImp implements UsersService {
 
     @Override
     public Users fetchStaffByName(String staffName) {
-        return usersRepository.findByUserEmail(staffName).orElse(null);
+        Users user = usersRepository.findByUserEmail(staffName).orElse(null);
+        log.info("User retrieved::: "+user.getStaffName());
+        return user;
     }
 
     @Override

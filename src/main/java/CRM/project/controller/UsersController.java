@@ -34,6 +34,7 @@ public class UsersController {
     @PostMapping("/findByStaff")
     public Users fetchByStaffName(@RequestBody Requestdto requestdto)
     {
+        log.info("Incoming request::: "+requestdto);
         return usersService.fetchStaffByName(requestdto.getStaffName());
     }
     @PostMapping("/findById")

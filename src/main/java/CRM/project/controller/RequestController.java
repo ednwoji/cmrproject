@@ -139,8 +139,7 @@ public class RequestController {
         if(request != null) {
             request.setStatus(Status.valueOf(data.get("status")));
             request.setClosureComments(data.get("closureComments"));
-            request.getCommentData().add(new CommentData(data.get("closedBy"), data.get("closureComments"), LocalDateTime.now()));
-//            request.getComments().add(data.get("closureComments"));
+//            request.getCommentData().add(new CommentData(data.get("closedBy"), data.get("closureComments"), LocalDateTime.now()));
             request.setClosureTime(LocalDateTime.now());
             request.setRating(Integer.parseInt(data.get("rating")));
             requestRepository.save(request);

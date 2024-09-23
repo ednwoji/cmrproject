@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "request_sub_category")
 @EntityListeners(AuditingEntityListener.class)
 public class SubCategory extends TimeClass {
     @Id

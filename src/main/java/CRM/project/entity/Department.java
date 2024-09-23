@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "user_department")
 public class Department extends TimeClass {
    @Id
    @GeneratedValue(strategy = GenerationType.AUTO)

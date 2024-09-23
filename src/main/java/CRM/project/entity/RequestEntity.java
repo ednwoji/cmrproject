@@ -16,7 +16,7 @@ import java.util.Map;
 
 @Entity
 @Data
-@Table(name = "REQUEST")
+@Table(name = "helpdesk_requests")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -24,39 +24,31 @@ import java.util.Map;
 public class RequestEntity extends TimeClass {
    @Id
    @GeneratedValue(strategy = GenerationType.AUTO)
-   private Integer id;
-    private String unit;
-    private LocalDateTime logTime;
-    private String subject;
-    private String priority;
-    private String category;
-    private String subCategory;
-    private String description;
-    private String technician;
-    private String name;
-    private String type;
-    private String email;
-    @Enumerated(EnumType.STRING)
-    private Status status;
-    private String filePath;
-    private LocalDateTime dueDate;
-    private int sla;
-    private String requester;
-    private String requesterUnit;
-
-//    @ElementCollection
-//    @CollectionTable(
-//            name = "comment_map",
-//            joinColumns = @JoinColumn(name = "id", referencedColumnName = "id")
-//    )
-//    @MapKeyColumn(name = "comment_key")
-//    @Column(name = "comment_value")
-//    @Cascade(org.hibernate.annotations.CascadeType.ALL)
-//    private Map<String, String> comments;
+   @Column(name = "helpdesk_request_id")
+   private int id;
+   private String unit;
+   private LocalDateTime logTime;
+   private String subject;
+   private String priority;
+   private String category;
+   private String subCategory;
+   private String description;
+   private String technician;
+   private String name;
+   private String type;
+   private String email;
+   @Enumerated(EnumType.STRING)
+   private Status status;
+   private String filePath;
+   private LocalDateTime dueDate;
+   private int sla;
+   private String requester;
+   private String requesterUnit;
 
     @ElementCollection
     @Column(name = "comment_data")
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
+    @CollectionTable(name = "request_entity_comment_data", joinColumns = @JoinColumn(name = "helpdesk_request_id"))
     private List<CommentData> commentData;
 
     private String closureComments;

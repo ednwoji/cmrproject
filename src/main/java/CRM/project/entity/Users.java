@@ -15,6 +15,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "helpdesk_users")
 @EntityListeners(AuditingEntityListener.class)
 public class Users extends TimeClass {
     @Id

@@ -23,7 +23,7 @@ import java.util.List;
 public class Reports {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long reportId;
 
     @Column(name = "report_name")
@@ -44,7 +44,8 @@ public class Reports {
     private List<String> requiredData;
 
     @Convert(converter = ReportDataConverter.class)
-    @Column(name = "report_data", columnDefinition = "TEXT")
+//    @Column(name = "report_data", columnDefinition = "TEXT")
+    @Column(name = "report_data", columnDefinition = "CLOB")
     private ReportData reportData;
 
     @Column(name = "report_query")
