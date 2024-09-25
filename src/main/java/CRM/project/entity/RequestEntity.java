@@ -54,4 +54,10 @@ public class RequestEntity extends TimeClass {
     private String closureComments;
     private LocalDateTime closureTime;
     private int rating;
+
+    @ElementCollection
+    @Column(name = "audit_trail")
+    @Cascade(org.hibernate.annotations.CascadeType.ALL)
+    @CollectionTable(name = "request_entity_audit_trail", joinColumns = @JoinColumn(name = "helpdesk_request_id"))
+    private List<AuditTrail> auditTrails;
 }

@@ -3,10 +3,7 @@ package CRM.project.controller;
 import CRM.project.dto.BulkDto;
 import CRM.project.dto.CommentData;
 import CRM.project.dto.Requestdto;
-import CRM.project.entity.Department;
-import CRM.project.entity.RequestEntity;
-import CRM.project.entity.Status;
-import CRM.project.entity.Users;
+import CRM.project.entity.*;
 import CRM.project.repository.DepartmentRepository;
 import CRM.project.repository.RequestRepository;
 import CRM.project.repository.UsersRepository;
@@ -115,7 +112,10 @@ public class RequestController {
         RequestEntity request = requestRepository.findById(Integer.parseInt(data.get("requestId"))).orElse(null);
 
         if(request != null) {
+            List<AuditTrail> auditList = Arrays.asList(new AuditTrail(request.getTechnician(), "Assigned request to "+data.get("newTechnician"), LocalDateTime.now()));
+            request.setAuditTrails(auditList);
             request.setTechnician(data.get("newTechnician"));
+
             requestRepository.save(request);
             response.put("code", "00");
         }
@@ -228,7 +228,12 @@ public class RequestController {
 
     @PostMapping("/allData")
     public ResponseEntity<?> findAllData(@RequestBody Map<String, String> data) {
-        Map<String, Integer> allRecordByUser = requestService.findAllRecordByUser(data.get("userName"));
+        Map<String, Long> allRecordByUser = requestService.findAllRecordByUser(data.get("userName"));
         return new ResponseEntity<>(allRecordByUser, HttpStatus.OK);
+    }
+
+    @PostMapping("/monthlyRequest")
+    public ResponseEntity<?> findRequestsByMonth(@RequestBody Map<String, String> data) {
+        return new ResponseEntity<>(requestService.getRequestsPerMonth(data.get("userName")), HttpStatus.OK);
     }
 }

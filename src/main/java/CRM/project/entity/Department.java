@@ -15,9 +15,7 @@ public class Department extends TimeClass {
    @GeneratedValue(strategy = GenerationType.AUTO)
    private Long departmentId;
    private String departmentName;
-//    @OneToMany
-//    @JoinColumn(name = "users_id", referencedColumnName = "unitId")
-    private String email;
-    @Transient
-    private String creationType;
+   private String email;
+   @Transient
+   private String creationType;
 }

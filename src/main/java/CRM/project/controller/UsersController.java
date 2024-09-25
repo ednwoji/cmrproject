@@ -1,64 +1,114 @@
 package CRM.project.controller;
 
 import CRM.project.dto.Requestdto;
+import CRM.project.dto.UserDto;
 import CRM.project.entity.Department;
 import CRM.project.entity.RequestEntity;
 import CRM.project.entity.Users;
 import CRM.project.response.Responses;
 import CRM.project.service.DepartmentService;
 import CRM.project.service.UsersService;
+import java.sql.Array;
+import java.util.*;
+
+import com.microsoft.schemas._2003._10.serialization.arrays.ArrayOfstring;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+import static CRM.project.utils.ExcelToCategoryutils.getRolesForUser;
 
 @RestController
 @Slf4j
 @RequestMapping("/user")
 @CrossOrigin
 public class UsersController {
+
     @Autowired
     private UsersService usersService;
 
-    @PostMapping("/addUser")
-    public ResponseEntity<?> addUser(@RequestBody Map<String, Object> data)
-    {
-        Users user1=usersService.addNewUser(data);
-        return (user1!=null) ? new ResponseEntity<>(new Responses("00", "User details Saved Successfully", null), HttpStatus.OK)
-                : new ResponseEntity<>(new Responses("99", "Record not saved, Ensure staff name has not been created", null), HttpStatus.OK);
-    }
-    @PostMapping("/findByStaff")
-    public Users fetchByStaffName(@RequestBody Requestdto requestdto)
-    {
-        log.info("Incoming request::: "+requestdto);
-        return usersService.fetchStaffByName(requestdto.getStaffName());
-    }
-    @PostMapping("/findById")
-    public Users fetchById(@RequestBody Requestdto requestdto)
-    {
-        return usersService.fetchUserById(requestdto.getUnitId());
-    }
-    @PostMapping("/findByUnit")
-    public ResponseEntity<?> fetchByUnit(@RequestBody Requestdto requestdto)
-    {
-        List<Users> unit=usersService.fetchStaffByUnit(requestdto.getUnitName());
-        return new ResponseEntity<>(unit, HttpStatus.OK);
+    private final String MODULE_ID = "fcubs";
+
+    public boolean authenticateUser(String username, String password) {
+
+        boolean result = false;
+        try {
+
+            com.unionbankng.applications.ws.UBNSMSService_Service service = new com.unionbankng.applications.ws.UBNSMSService_Service();
+            com.unionbankng.applications.ws.UBNSMSService port = service.getBasicHttpBindingUBNSMSService();
+            // TODO process result here
+            result = port.adAuthenticate(username, password, MODULE_ID);
+            System.out.println("Result = " + result);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return result;
     }
 
+
+    @PostMapping("/validate-user")
+    public ResponseEntity<?> validateUser(@RequestBody Map<String, String> userDetails) {
+        if (userDetails.get("username") == null || userDetails.get("password") == null) {
+            return new ResponseEntity<>(new Responses<>("99", "Invalid Credentials", null), HttpStatus.BAD_REQUEST);
+        }
+        boolean validation = authenticateUser(userDetails.get("username"), userDetails.get("password"));
+        if (validation) {
+            List<String> userRoles = new ArrayList<>();
+            try {
+                userRoles = getRolesForUser(userDetails.get("username"));
+                log.info("User roles::: " + userRoles.toString());
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            Users users = usersService.fetchStaffByName(userDetails.get("username"));
+            if(users == null) {
+                return new ResponseEntity<>(new Responses<>("45", "User not profiled on application", null), HttpStatus.OK);
+            }
+            UserDto userDto = new UserDto(users, userRoles, null);
+            return new ResponseEntity<>(new Responses<>("00", "Success", userDto), HttpStatus.OK);
+
+        } else {
+            return new ResponseEntity<>(new Responses<>("99", "Wrong credentials", null), HttpStatus.OK);
+        }
+    }
+
+    @PostMapping("/addUser")
+    public ResponseEntity<?> addUser(@RequestBody Map<String, Object> data) {
+        Users user1 = usersService.addNewUser(data);
+        return (user1 != null) ? new ResponseEntity<>(new Responses("00", "User details Saved Successfully", null), HttpStatus.OK)
+                : new ResponseEntity<>(new Responses("99", "Record not saved, Ensure staff name has not been created", null), HttpStatus.OK);
+    }
+
+    @PostMapping("/findByStaff")
+    public Users fetchByStaffName(@RequestBody Requestdto requestdto) {
+        log.info("Incoming request::: " + requestdto);
+        return usersService.fetchStaffByName(requestdto.getStaffName());
+    }
+
+    @PostMapping("/findById")
+    public Users fetchById(@RequestBody Requestdto requestdto) {
+        return usersService.fetchUserById(requestdto.getUnitId());
+    }
+
+    @PostMapping("/findByUnit")
+    public ResponseEntity<?> fetchByUnit(@RequestBody Requestdto requestdto) {
+        List<Users> usersList = usersService.fetchStaffByUnit(requestdto.getUnitName());
+        for(Users user: usersList) {
+            user.setUserRoles(getRolesForUser(user.getUserEmail()));
+        }
+        return new ResponseEntity<>(usersList, HttpStatus.OK);
+    }
 
     @PostMapping("/fetchUsers")
     public ResponseEntity<?> findAllUsers() {
         return new ResponseEntity<>(usersService.findAllUsers(), HttpStatus.OK);
     }
 
-
     @PostMapping("/modify-availability")
     public ResponseEntity<?> modifyUserAvailability(@RequestBody Map<String, String> data) {
-        log.info("Modifying user with id "+data.get("userId"));
+        log.info("Modifying user with id " + data.get("userId"));
         return new ResponseEntity<>(usersService.updateAvailability(data), HttpStatus.OK);
     }
 }

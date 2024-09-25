@@ -19,8 +19,11 @@ import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static CRM.project.utils.ExcelToCategoryutils.getRolesForUser;
 
 @Service
 @Slf4j
@@ -38,6 +41,8 @@ public class RequestService {
 
     @Autowired
     private SubCategoryRepository subCategoryRepository;
+
+
     public Map<String, String> uploadImageToFileSystem(MultipartFile file, RequestEntity requestEntity) throws IOException {
         Map<String, String> responseData = new HashMap<>();
         SubCategory sub = subCategoryRepository.findBySubCategoryName(requestEntity.getSubCategory()).orElse(null);
@@ -56,6 +61,8 @@ public class RequestService {
                 String technician = findLeastAssignedTechnician(requestEntity.getUnit());
                 if(technician != null) {
                     requestEntity.setTechnician(technician);
+                    List<AuditTrail> auditList = Arrays.asList(new AuditTrail("SYSTEM", "Assigned request to "+technician, LocalDateTime.now()));
+                    requestEntity.setAuditTrails(auditList);
                 }
                 else {
                     requestEntity.setTechnician("Unassigned");
@@ -64,13 +71,12 @@ public class RequestService {
             requestEntity.setStatus(Status.OPEN);
             requestEntity.setLogTime(LocalDateTime.now());
             log.info("Request Entity:::::: "+requestEntity);
-            RequestEntity storeData = requestRepository.save(requestEntity);
-
-            if (storeData != null) {
+            try {
+                RequestEntity storeData = requestRepository.save(requestEntity);
                 responseData.put("code", "00");
                 responseData.put("message", "Request saved successfully");
                 responseData.put("requestId", String.valueOf(storeData.getId()));
-            } else {
+            }catch(Exception e) {
                 responseData.put("code", "90");
                 responseData.put("message", "Failed to save request");
             }
@@ -175,42 +181,64 @@ public class RequestService {
         return requestRepository.findByUnit(unit);
     }
 
-    public Map<String, Integer> findAllRecordByUser(String userName) {
+    public Map<String, Long> findAllRecordByUser(String userName) {
         log.info("User is "+userName);
         Users user = usersRepository.findByUserEmail(userName).orElse(null);
-        Map<String, Integer> result = new HashMap<>();
+        Map<String, Long> result = new HashMap<>();
         if(user != null) {
             List<RequestEntity> allRequests = requestRepository.findByTechnician(user.getStaffName());
 
             int totalRequests = allRequests.size();
             log.info(""+totalRequests);
 
-            int sumOfClosedRequests = allRequests.stream()
+            Long sumOfClosedRequests = allRequests.stream()
                     .filter(request -> Status.CLOSED.equals(request.getStatus()))
-                    .mapToInt(request -> 1)
+                    .mapToLong(request -> 1)
                     .sum();
 
-            int sumOfResolvedRequests = allRequests.stream()
+            Long sumOfResolvedRequests = allRequests.stream()
                     .filter(request -> Status.RESOLVED.equals(request.getStatus()))
-                    .mapToInt(request -> 1)
+                    .mapToLong(request -> 1)
                     .sum();
 
-            int  sumOfOpenRequests = allRequests.stream()
+            Long sumOfOpenRequests = allRequests.stream()
                     .filter(request -> Status.OPEN.equals(request.getStatus()))
-                    .mapToInt(request -> 1)
+                    .mapToLong(request -> 1)
                     .sum();
 
-            int sumOfRequestsWithinSla = allRequests.stream()
+            long sumOfRequestsWithinSla = allRequests.stream()
                     .filter(request -> LocalDateTime.now().isAfter(request.getDueDate()))
-                    .mapToInt(request -> 1)
+                    .mapToLong(request -> 1)
                     .sum();
+
             result.put("openRequest", sumOfOpenRequests);
             result.put("closedRequest", sumOfClosedRequests);
-            result.put("totalRequest", totalRequests);
+            result.put("totalRequest", (long) totalRequests);
             result.put("resolvedTicket", sumOfResolvedRequests);
             result.put("withinSla", sumOfRequestsWithinSla);
             result.put("breachedSla", totalRequests - sumOfRequestsWithinSla);
         }
         return result;
+    }
+
+    public Map<String, Long> getRequestsPerMonth(String username) {
+
+        List<String> roles = getRolesForUser(username);
+        List<Object[]> results = new ArrayList<>();
+
+        Map<String, Long> monthlyRequests = new HashMap<>();
+        for (Month month : Month.values()) {
+            monthlyRequests.put(month.name(), 0L);
+        }
+
+        results = !roles.contains("admin") ? requestRepository.findRequestsGroupedByMonth(username)
+                : requestRepository.findAdminRequestsGroupedByMonth();
+
+        for (Object[] result : results) {
+            int month = (Integer) result[0];
+            long count = (Long) result[1];
+            monthlyRequests.put(Month.of(month).name(), count);
+        }
+        return monthlyRequests;
     }
 }

@@ -77,5 +77,21 @@ public class ExcelToCategoryutils {
         }
         return null;
     }
+
+
+    public static List<String> getRolesForUser(String user) {
+
+        try {
+            com.unionbankng.applications.ws.UBNSMSService_Service service2 = new com.unionbankng.applications.ws.UBNSMSService_Service();
+            com.unionbankng.applications.ws.UBNSMSService port2 = service2.getBasicHttpBindingUBNSMSService();
+            com.microsoft.schemas._2003._10.serialization.arrays.ArrayOfstring result = port2.getRolesForUser(user, "crm-portal");
+            System.out.println("Result = " + result.toString());
+            return result.getString();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
 }
 

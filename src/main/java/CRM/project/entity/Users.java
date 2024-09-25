@@ -29,10 +29,9 @@ public class Users extends TimeClass {
     private String staffName;
     private String userEmail;
 
-    @ElementCollection
-    @Column(name = "roles")
-    @Cascade(org.hibernate.annotations.CascadeType.ALL)
-    private List<String> roles;
+    @Transient
+    private List<String> userRoles;
+
 
     @Enumerated(EnumType.STRING)
     private Availability availability;
