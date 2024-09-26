@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,5 +58,11 @@ public class SubCategoryImp implements SubCategoryService {
         List<SubCategory> all =  subCategoryRepository.findAll();
         log.info(""+all.toString());
         return all;
+    }
+
+    @Override
+    @Transactional
+    public void deleteSubCategories(Long id) {
+        subCategoryRepository.deleteById(id);
     }
 }

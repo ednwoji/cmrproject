@@ -132,21 +132,27 @@ public class RequestController {
     @PostMapping("/closeRequest")
     public ResponseEntity<?> closeTicket(@RequestBody Map<String, String> data) {
 
-        Map<String, String> response = new HashMap<>();
+        Responses response = null;
         log.info("Closing Request::: "+data.toString());
-        RequestEntity request = requestRepository.findById(Integer.parseInt(data.get("requestId"))).orElse(null);
+        RequestEntity request = requestRepository.findByRequestId(data.get("requestId")).orElse(null);
 
         if(request != null) {
+
+            if(request.getStatus().equals(Status.valueOf(data.get("status")))) {
+                response = new Responses<>("99", "You can't modify this request",null);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }
+
             request.setStatus(Status.valueOf(data.get("status")));
             request.setClosureComments(data.get("closureComments"));
-//            request.getCommentData().add(new CommentData(data.get("closedBy"), data.get("closureComments"), LocalDateTime.now()));
+            request.getCommentData().add(new CommentData(data.get("closedBy"), data.get("closureComments"), LocalDateTime.now()));
             request.setClosureTime(LocalDateTime.now());
             request.setRating(Integer.parseInt(data.get("rating")));
             requestRepository.save(request);
-            response.put("code", "00");
+            response = new Responses<>("00", "Success",null);
         }
         else {
-            response.put("code", "99");
+            response = new Responses<>("99", "Invalid Request ID",null);
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -159,7 +165,7 @@ public class RequestController {
         log.info("Incoming request for bulk assigning "+bulkDto.toString());
         Map<String, String> response = new HashMap<>();
         for(RequestEntity request : bulkDto.getRequests()) {
-            RequestEntity findRequest = requestRepository.findById((request.getId())).orElse(null);
+            RequestEntity findRequest = requestRepository.findByRequestId((request.getRequestId())).orElse(null);
 
             if(request != null) {
                 request.setTechnician(bulkDto.getTechnician());
@@ -186,7 +192,7 @@ public class RequestController {
         if(bulkDto.getTechnician() != null) {
             Map<String, String> response = new HashMap<>();
             for (RequestEntity request : bulkDto.getRequests()) {
-                RequestEntity findRequest = requestRepository.findById((request.getId())).orElse(null);
+                RequestEntity findRequest = requestRepository.findByRequestId((request.getRequestId())).orElse(null);
 
                 if (findRequest != null) {
                     findRequest.setTechnician(bulkDto.getTechnician());
@@ -205,7 +211,7 @@ public class RequestController {
         else {
             Map<String, String> response = new HashMap<>();
             for (RequestEntity request : bulkDto.getRequests()) {
-                RequestEntity findRequest = requestRepository.findById((request.getId())).orElse(null);
+                RequestEntity findRequest = requestRepository.findByRequestId((request.getRequestId())).orElse(null);
 
                 if (findRequest != null) {
                     findRequest.setStatus(Status.CLOSED);

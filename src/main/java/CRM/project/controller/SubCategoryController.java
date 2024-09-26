@@ -54,4 +54,14 @@ public class SubCategoryController {
     public ResponseEntity<?> getAllSubCategories() {
         return new ResponseEntity<>(subCategoryService.fetchAllSubcategories(), HttpStatus.OK);
     }
+
+    @PostMapping("/deletesubcategory")
+    public ResponseEntity<?> deleteSubCategory(@RequestBody Map<String, String> data) {
+        try {
+            subCategoryService.deleteSubCategories(Long.valueOf(data.get("subCatId")));
+            return new ResponseEntity<>(new Responses<>("00", "Deleted Successfully", null), HttpStatus.OK);
+        }catch(Exception e) {
+            return new ResponseEntity<>(new Responses<>("42", "Unexpected Error occurred", null), HttpStatus.OK);
+        }
+    }
 }

@@ -7,6 +7,7 @@ import CRM.project.repository.DepartmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 @Service
@@ -37,5 +38,16 @@ public class CategoryServiceImp implements CategoryService {
     @Override
     public List<Category> fetchCategories() {
         return categoryRepository.findAll();
+    }
+
+    @Override
+    public Category findByCategory(String catId) {
+        return categoryRepository.findByCategoryId(Long.valueOf(catId)).orElse(null);
+    }
+
+    @Override
+    @Transactional
+    public void deleteCategory(Category category) {
+        categoryRepository.deleteByCategoryId(category.getCategoryId());
     }
 }

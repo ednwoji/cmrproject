@@ -49,4 +49,6 @@ public interface RequestRepository extends JpaRepository<RequestEntity,Integer> 
             "AND r.technician =:username " +
             "GROUP BY MONTH(r.logTime), YEAR(r.logTime)")
     List<Object[]> findRequestsGroupedByMonth(@Param("username") String username);
+
+    Optional<RequestEntity> findByRequestId(String requestId);
 }

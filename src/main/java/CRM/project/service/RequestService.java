@@ -75,7 +75,7 @@ public class RequestService {
                 RequestEntity storeData = requestRepository.save(requestEntity);
                 responseData.put("code", "00");
                 responseData.put("message", "Request saved successfully");
-                responseData.put("requestId", String.valueOf(storeData.getId()));
+                responseData.put("requestId", storeData.getRequestId());
             }catch(Exception e) {
                 responseData.put("code", "90");
                 responseData.put("message", "Failed to save request");

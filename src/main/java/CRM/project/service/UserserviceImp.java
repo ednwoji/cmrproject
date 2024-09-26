@@ -4,6 +4,7 @@ import CRM.project.dto.Availability;
 import CRM.project.dto.Roles;
 import CRM.project.entity.Department;
 import CRM.project.entity.RequestEntity;
+import CRM.project.entity.UserStatus;
 import CRM.project.entity.Users;
 import CRM.project.repository.DepartmentRepository;
 import CRM.project.repository.UsersRepository;
@@ -38,6 +39,7 @@ public class UserserviceImp implements UsersService {
             users.setStaffName(String.valueOf(data.get("technician")));
             users.setUnitName(department1);
             users.setUserEmail(String.valueOf(data.get("email")));
+            users.setStatus(UserStatus.ACTIVE);
 
             users.setAvailability(Availability.ONLINE);
             return usersRepository.save(users);
@@ -48,13 +50,12 @@ public class UserserviceImp implements UsersService {
     @Override
     public Users fetchStaffByName(String staffName) {
         Users user = usersRepository.findByUserEmail(staffName).orElse(null);
-        log.info("User retrieved::: "+user.getStaffName());
         return user;
     }
 
     @Override
     public Users fetchUserById(Long id) {
-        return usersRepository.findById(id).get();
+        return usersRepository.findByUserId(id).orElse(null);
     }
 
     @Override
@@ -83,6 +84,11 @@ public class UserserviceImp implements UsersService {
             Users users1 = usersRepository.save(users);
             return new Responses("00", "User updated successfully", users1);
         }
+    }
+
+    @Override
+    public Users saveUser(Users users) {
+        return usersRepository.save(users);
     }
 
 

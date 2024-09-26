@@ -4,6 +4,11 @@ import CRM.project.dto.ReportData;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.persistence.AttributeConverter;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.UUID;
 
 public class ReportDataConverter implements AttributeConverter<ReportData, String> {
 
@@ -25,5 +30,16 @@ public class ReportDataConverter implements AttributeConverter<ReportData, Strin
         } catch (Exception e) {
             throw new RuntimeException("Could not convert JSON to report data", e);
         }
+    }
+
+    public static String formatDate() {
+        SimpleDateFormat sf = new SimpleDateFormat("yyyyMMddHHmmss");
+        LocalDateTime dateTime = LocalDateTime.now();
+        Date date = Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
+        return sf.format(date);
+    }
+
+    public static String generateRequestId() {
+        return "UBNHLPDSK"+formatDate()+ UUID.randomUUID().toString().substring(0,3);
     }
 }

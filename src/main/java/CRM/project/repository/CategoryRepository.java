@@ -14,4 +14,8 @@ public interface CategoryRepository extends JpaRepository<Category,Long> {
     Optional<Category> findByCategoryName (String categoryName);
 
     List<Category> findByUnitName(Department department1);
+
+    Optional<Category> findByCategoryId(Long aLong);
+
+    void deleteByCategoryId(long categoryId);
 }

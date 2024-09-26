@@ -32,6 +32,9 @@ public class Users extends TimeClass {
     @Transient
     private List<String> userRoles;
 
+    @Enumerated(EnumType.STRING)
+    private UserStatus status;
+
 
     @Enumerated(EnumType.STRING)
     private Availability availability;

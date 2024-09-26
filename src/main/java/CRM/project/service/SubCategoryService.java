@@ -13,4 +13,6 @@ public interface SubCategoryService {
     Map<String, String> createSubCategory(Category category1, Map<String, String> data);
 
     List<SubCategory> fetchAllSubcategories();
+
+    void deleteSubCategories(Long id);
 }

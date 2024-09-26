@@ -4,6 +4,7 @@ import CRM.project.dto.Requestdto;
 import CRM.project.dto.UserDto;
 import CRM.project.entity.Department;
 import CRM.project.entity.RequestEntity;
+import CRM.project.entity.UserStatus;
 import CRM.project.entity.Users;
 import CRM.project.response.Responses;
 import CRM.project.service.DepartmentService;
@@ -17,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import javax.jws.soap.SOAPBinding;
 
 import static CRM.project.utils.ExcelToCategoryutils.getRolesForUser;
 
@@ -66,12 +69,26 @@ public class UsersController {
             if(users == null) {
                 return new ResponseEntity<>(new Responses<>("45", "User not profiled on application", null), HttpStatus.OK);
             }
+            if(userRoles.isEmpty()) {
+                return new ResponseEntity<>(new Responses<>("45", "Please engage Access Control for access", null), HttpStatus.OK);
+            }
             UserDto userDto = new UserDto(users, userRoles, null);
             return new ResponseEntity<>(new Responses<>("00", "Success", userDto), HttpStatus.OK);
 
         } else {
             return new ResponseEntity<>(new Responses<>("99", "Wrong credentials", null), HttpStatus.OK);
         }
+    }
+
+    @PostMapping("/disableUser")
+    public ResponseEntity<?> deleteUser(@RequestBody Map<String, String> data) {
+        Users users = usersService.fetchUserById(Long.valueOf(data.get("userId")));
+        if(users != null) {
+            users.setStatus(UserStatus.valueOf(data.get("status")));
+            Users users1 =  usersService.saveUser(users);
+            return new ResponseEntity<>(new Responses("00", "Treated successfully", null), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new Responses("99", "Invalid User provided", null), HttpStatus.OK);
     }
 
     @PostMapping("/addUser")

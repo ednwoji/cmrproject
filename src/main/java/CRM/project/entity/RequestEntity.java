@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -22,10 +23,16 @@ import java.util.Map;
 @Builder
 @EntityListeners(AuditingEntityListener.class)
 public class RequestEntity extends TimeClass {
-   @Id
-   @GeneratedValue(strategy = GenerationType.AUTO)
-   @Column(name = "helpdesk_request_id")
-   private int id;
+//   @Id
+//   @GeneratedValue(strategy = GenerationType.AUTO)
+//   @Column(name = "helpdesk_request_id")
+//   private int id;
+
+    @Id
+    @GeneratedValue(generator = "custom-uuid-generator")
+    @GenericGenerator(name = "custom-uuid-generator", strategy = "CRM.project.entity.CustomIdGenerator")
+    @Column(name = "helpdesk_request_id", updatable = false, nullable = false)
+    private String requestId;
    private String unit;
    private LocalDateTime logTime;
    private String subject;

@@ -9,4 +9,8 @@ public interface CategoryService {
     List<Category> getAllCategory(Category category);
 
     List<Category> fetchCategories();
+
+    Category findByCategory(String catId);
+
+    void deleteCategory(Category category);
 }

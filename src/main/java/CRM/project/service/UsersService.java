@@ -21,4 +21,6 @@ public interface UsersService {
     List<Users> findAllUsers();
 
     Object updateAvailability(Map<String, String> data);
+
+    Users saveUser(Users users);
 }
