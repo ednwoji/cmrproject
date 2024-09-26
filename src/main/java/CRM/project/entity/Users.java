@@ -35,7 +35,9 @@ public class Users extends TimeClass {
     @Enumerated(EnumType.STRING)
     private UserStatus status;
 
-
     @Enumerated(EnumType.STRING)
     private Availability availability;
+
+    @Column(name = "created_by")
+    private String createdBy;
 }

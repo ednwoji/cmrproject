@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -81,16 +82,18 @@ public class ExcelToCategoryutils {
 
     public static List<String> getRolesForUser(String user) {
 
-        try {
-            com.unionbankng.applications.ws.UBNSMSService_Service service2 = new com.unionbankng.applications.ws.UBNSMSService_Service();
-            com.unionbankng.applications.ws.UBNSMSService port2 = service2.getBasicHttpBindingUBNSMSService();
-            com.microsoft.schemas._2003._10.serialization.arrays.ArrayOfstring result = port2.getRolesForUser(user, "crm-portal");
-            System.out.println("Result = " + result.toString());
-            return result.getString();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return null;
-        }
+        return Arrays.asList("user", "admin", "technician", "manager");
+
+//        try {
+//            com.unionbankng.applications.ws.UBNSMSService_Service service2 = new com.unionbankng.applications.ws.UBNSMSService_Service();
+//            com.unionbankng.applications.ws.UBNSMSService port2 = service2.getBasicHttpBindingUBNSMSService();
+//            com.microsoft.schemas._2003._10.serialization.arrays.ArrayOfstring result = port2.getRolesForUser(user, "crm-portal");
+//            System.out.println("Result = " + result.toString());
+//            return result.getString();
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//            return null;
+//        }
     }
 
 }

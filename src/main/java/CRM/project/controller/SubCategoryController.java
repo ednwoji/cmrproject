@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -64,4 +65,27 @@ public class SubCategoryController {
             return new ResponseEntity<>(new Responses<>("42", "Unexpected Error occurred", null), HttpStatus.OK);
         }
     }
+
+    @PostMapping("/bulkUpload")
+    public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file){
+        if(!file.getContentType().equalsIgnoreCase("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")){
+            return new ResponseEntity<>(new Responses<>("45", "Invalid File Type", null), HttpStatus.BAD_REQUEST);
+        }
+
+        List<SubCategory> categoryList;
+        try {
+            categoryList = subCategoryService.uploadCategories(file);
+        } catch (Exception e) {
+            log.error("Error uploading users: ", e);
+            return new ResponseEntity<>(new Responses<>("90", "Error saving categories", null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        if (categoryList != null && !categoryList.isEmpty()) {
+            return new ResponseEntity<>(new Responses<>("00", "Sub-Categories Saved Successfully", null), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(new Responses<>("90", "No Sub-Category saved", null), HttpStatus.BAD_REQUEST);
+        }
+
+    }
+
 }

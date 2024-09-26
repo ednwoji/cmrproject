@@ -1,7 +1,9 @@
 package CRM.project.service;
 
 import CRM.project.entity.Category;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface CategoryService {
@@ -13,4 +15,6 @@ public interface CategoryService {
     Category findByCategory(String catId);
 
     void deleteCategory(Category category);
+
+    List<Category> uploadCategories(MultipartFile file) throws IOException;
 }

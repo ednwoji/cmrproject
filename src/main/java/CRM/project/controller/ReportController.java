@@ -57,6 +57,7 @@ public class ReportController {
         reports.setReportData(mapReportContents(fields));
         reports.setCreatedBy(String.valueOf(request.get("createdBy")));
         reports.setCreatedTime(LocalDateTime.now());
+        log.info("Generated query is::: "+reports.getReportQuery());
 
         try {
             reportRepository.save(reports);
@@ -136,7 +137,16 @@ public class ReportController {
                 query.append(", ");
             }
         }
-        query.append(" FROM request WHERE created_date between '"+startDate+"' and '"+endDate+"'");
+//        query.append(" FROM helpdesk_requests WHERE created_date between '"+startDate+"' and '"+endDate+"'");
+
+                query
+                .append(" FROM helpdesk_requests ")
+                .append("WHERE created_date BETWEEN TO_TIMESTAMP('")
+                .append(startDate)
+                .append(" 00:00:00', 'YYYY-MM-DD HH24:MI:SS') ")
+                .append("AND TO_TIMESTAMP('")
+                .append(endDate)
+                .append(" 23:59:59', 'YYYY-MM-DD HH24:MI:SS')");
 
         for (Map.Entry<String, String> entry : filters.entrySet()) {
             String field = entry.getKey();
@@ -188,7 +198,6 @@ public class ReportController {
             Reports reports = reportRepository.findByReportId(Long.valueOf(data.get("reportId"))).orElse(null);
             if(reports != null) {
                 List<Map<String, Object>> resultList = jdbcTemplate.queryForList(reports.getReportQuery());
-                log.info("Result of query is "+resultList.get(0));
 
                 try (Workbook workbook = new XSSFWorkbook()) {
                     Sheet sheet = workbook.createSheet("Report");

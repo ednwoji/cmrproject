@@ -3,6 +3,7 @@ package CRM.project;
 import CRM.project.dto.Availability;
 import CRM.project.entity.Department;
 import CRM.project.entity.Users;
+import CRM.project.repository.ReportRepository;
 import CRM.project.repository.UsersRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -13,6 +14,8 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
+import javax.annotation.PostConstruct;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +24,8 @@ import java.util.List;
 @EnableJpaAuditing
 public class CrmProjectApplication extends SpringBootServletInitializer {
 
+	@Autowired
+	private ReportRepository reportRepository;
 
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
@@ -29,6 +34,14 @@ public class CrmProjectApplication extends SpringBootServletInitializer {
 
 	public static void main(String[] args) {
 		SpringApplication.run(CrmProjectApplication.class, args);
+//		Department department = new Department();
+//		department.setDepartmentName("Operation");
 	}
 
+
+//	@PostConstruct
+//	@Transactional
+//	public void deleteReport() {
+//		reportRepository.deleteAll();
+//	}
 }

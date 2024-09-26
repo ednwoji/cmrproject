@@ -12,13 +12,19 @@ import CRM.project.response.Responses;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @Slf4j
@@ -89,6 +95,47 @@ public class UserserviceImp implements UsersService {
     @Override
     public Users saveUser(Users users) {
         return usersRepository.save(users);
+    }
+
+    @Override
+    public List<Users> uploadUsers(MultipartFile file, String createdBy) throws IOException {
+        Workbook workbook = new XSSFWorkbook(file.getInputStream());
+
+        try {
+            Sheet sheet = workbook.getSheetAt(0);
+            if(sheet.getPhysicalNumberOfRows() > 3001) {
+                return null;
+            }
+
+            List<CompletableFuture<Users>> futures = IntStream.rangeClosed(1, sheet.getLastRowNum())
+                    .parallel()
+                    .mapToObj(i -> CompletableFuture.supplyAsync(() -> {
+                        try {
+                            Users users = new Users();
+                            Row row = sheet.getRow(i);
+                            users.setAvailability(Availability.ONLINE);
+                            users.setUserEmail(row.getCell(1).getStringCellValue());
+                            users.setCreatedBy(createdBy);
+                            users.setStatus(UserStatus.ACTIVE);
+                            users.setStaffName(row.getCell(2).getStringCellValue());
+                            users.setUnitName(departmentRepository.findByDepartmentName(row.getCell(3).getStringCellValue()).orElse(null));
+
+                            return users;
+                        }catch(Exception e) {
+                            log.error("Error processing row "+i, e);
+                            return null;
+                        }
+                    }))
+                    .collect(Collectors.toList());
+            List<Users> usersList = futures.stream()
+                    .map(CompletableFuture::join)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            return usersRepository.saveAll(usersList);
+        }catch (Exception e) {
+            return null;
+        }
     }
 
 

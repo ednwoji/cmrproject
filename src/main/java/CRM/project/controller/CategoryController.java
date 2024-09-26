@@ -3,6 +3,7 @@ package CRM.project.controller;
 import CRM.project.entity.Category;
 import CRM.project.entity.Department;
 import CRM.project.entity.SubCategory;
+import CRM.project.entity.Users;
 import CRM.project.response.Responses;
 import CRM.project.service.CategoryService;
 import CRM.project.service.SubCategoryService;
@@ -75,8 +76,25 @@ public class CategoryController {
 
     //added the poiji dependency needed
     @PostMapping("/bulkUpload")
-    public List<Category> upload(@RequestParam("file")MultipartFile file){
-        return utils.convertFromExcel(file);
+    public ResponseEntity<?> upload(@RequestParam("file")MultipartFile file){
+        if(!file.getContentType().equalsIgnoreCase("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")){
+            return new ResponseEntity<>(new Responses<>("45", "Invalid File Type", null), HttpStatus.BAD_REQUEST);
+        }
+
+        List<Category> categoryList;
+        try {
+            categoryList = categoryService.uploadCategories(file);
+        } catch (Exception e) {
+            log.error("Error uploading users: ", e);
+            return new ResponseEntity<>(new Responses<>("90", "Error saving categories", null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        if (categoryList != null && !categoryList.isEmpty()) {
+            return new ResponseEntity<>(new Responses<>("00", "Categories Saved Successfully", null), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(new Responses<>("90", "No category saved", null), HttpStatus.BAD_REQUEST);
+        }
+
     }
 
 }
