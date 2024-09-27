@@ -27,4 +27,5 @@ public interface UsersService {
     Users saveUser(Users users);
 
     List<Users> uploadUsers(MultipartFile file, String createdBy) throws IOException;
+    public Users fetchStaffByFullName(String staffName);
 }

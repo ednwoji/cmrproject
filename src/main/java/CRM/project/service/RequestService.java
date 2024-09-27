@@ -1,5 +1,7 @@
 package CRM.project.service;
 
+import CRM.project.dto.Availability;
+import CRM.project.dto.MessagePreference;
 import CRM.project.dto.Requestdto;
 import CRM.project.entity.*;
 import CRM.project.repository.DepartmentRepository;
@@ -16,6 +18,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -41,6 +44,9 @@ public class RequestService {
 
     @Autowired
     private SubCategoryRepository subCategoryRepository;
+
+    @Autowired
+    private EmailServiceImpl emailService;
 
 
     public Map<String, String> uploadImageToFileSystem(MultipartFile file, RequestEntity requestEntity) throws IOException {
@@ -76,6 +82,12 @@ public class RequestService {
                 responseData.put("code", "00");
                 responseData.put("message", "Request saved successfully");
                 responseData.put("requestId", storeData.getRequestId());
+
+                try{
+                    emailService.sendEmail(requestEntity, MessagePreference.OPEN,null);
+                }catch (Exception e) {
+                    e.printStackTrace();
+                }
             }catch(Exception e) {
                 responseData.put("code", "90");
                 responseData.put("message", "Failed to save request");
@@ -100,7 +112,7 @@ public class RequestService {
         Department department = departmentRepository.findByDepartmentName(unitName).orElse(null);
         List<RequestEntity> allRequestsForTheDay = requestRepository.findByUnitAndCreatedTimeBetween(unitName, LocalDate.now().atStartOfDay(), LocalDate.now().atTime(LocalTime.MAX));
 
-        List<Users> allTeamMembers = usersRepository.findAllByUnitName(department);
+        List<Users> allTeamMembers = usersRepository.findAllByUnitNameAndAvailability(department, Availability.fromCode("1"));
         List<String> unassignedStaff = new ArrayList<>();
 
         if(!allRequestsForTheDay.isEmpty()) {
@@ -240,5 +252,9 @@ public class RequestService {
             monthlyRequests.put(Month.of(month).name(), count);
         }
         return monthlyRequests;
+    }
+
+    public byte[] readFile(String filePath) throws IOException {
+      return Files.readAllBytes(Paths.get(filePath));
     }
 }

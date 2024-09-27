@@ -60,6 +60,11 @@ public class UserserviceImp implements UsersService {
     }
 
     @Override
+    public Users fetchStaffByFullName(String staffName) {
+        return usersRepository.findByStaffName(staffName).orElse(null);
+    }
+
+    @Override
     public Users fetchUserById(Long id) {
         return usersRepository.findByUserId(id).orElse(null);
     }

@@ -59,9 +59,9 @@ public class UsersController {
     public ResponseEntity<?> validateUser(@RequestBody Map<String, String> userDetails) {
 
         if(userDetails.get("username").equalsIgnoreCase("admin")) {
-            Department department = new Department(1L, "Operations", "operations@gmail.com", null);
+            Department department = new Department(1L, "Database", "operations@gmail.com", null);
             List<String> roles = Arrays.asList("user", "admin");
-            Users users = new Users(1L, department, "Admin Admin","admin@gmail.com", null, UserStatus.ACTIVE, Availability.ONLINE, null);
+            Users users = new Users(1L, department, "Admin Admin","admin",null, UserStatus.ACTIVE, Availability.ONLINE, null);
             UserDto userDto = new UserDto(users, roles, null);
             return new ResponseEntity<>(new Responses<>("00", "Success", userDto), HttpStatus.OK);
         }

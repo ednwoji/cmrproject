@@ -2,17 +2,20 @@ package CRM.project.controller;
 
 import CRM.project.dto.BulkDto;
 import CRM.project.dto.CommentData;
+import CRM.project.dto.MessagePreference;
 import CRM.project.dto.Requestdto;
 import CRM.project.entity.*;
 import CRM.project.repository.DepartmentRepository;
 import CRM.project.repository.RequestRepository;
 import CRM.project.repository.UsersRepository;
 import CRM.project.response.Responses;
+import CRM.project.service.EmailServiceImpl;
 import CRM.project.service.RequestService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.Response;
 import org.apache.logging.log4j.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +37,9 @@ public class RequestController {
     private RequestRepository requestRepository;
     @Autowired
     private DepartmentRepository departmentRepository;
+
+    @Autowired
+    private EmailServiceImpl emailService;
 
     @Autowired
     private UsersRepository usersRepository;
@@ -62,14 +68,37 @@ public class RequestController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(uploadImage);
     }
+
+
+//    @PostMapping("/downloadRequest")
+//    public ResponseEntity<?> downloadImageFromFileSystem(@RequestBody Map<String, String> data) throws IOException {
+//        RequestEntity requestdto1=requestRepository.findById(Integer.valueOf(data.get("requestId"))).orElse(null);
+//        byte[] imageData=requestService.downloadImageFromFileSystem(requestdto1.getFilePath());
+//        return ResponseEntity.status(HttpStatus.OK)
+//                .body(imageData);
+//    }
+
+
     @PostMapping("/downloadRequest")
-    public ResponseEntity<?> downloadImageFromFileSystem(@RequestBody Map<String, String> data) throws IOException {
-        RequestEntity requestdto1=requestRepository.findById(Integer.valueOf(data.get("requestId"))).orElse(null);
-        byte[] imageData=requestService.downloadImageFromFileSystem(requestdto1.getFilePath());
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(imageData);
+    public ResponseEntity<?> downloadAttachmentsFromFileSystem(@RequestBody Map<String, String> data) throws IOException {
+        log.info(data.get("fileName"));
+        try {
+            byte[] imageData=requestService.readFile(data.get("filePath"));
+
+            HttpHeaders headers = new HttpHeaders();
+//            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentType(MediaType.valueOf(data.get("fileType")));
+            headers.setContentDispositionFormData("attachment", data.get("fileName").split("\\.")[0]);
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(imageData);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
 
     }
+
+
     @PostMapping("/findRequestByUnit")
     public ResponseEntity<?> findRequestByUnit(@RequestBody Requestdto requestdto) {
 
@@ -150,6 +179,11 @@ public class RequestController {
             request.setRating(Integer.parseInt(data.get("rating")));
             requestRepository.save(request);
             response = new Responses<>("00", "Success",null);
+            try{
+                emailService.sendEmail(request, MessagePreference.valueOf(String.valueOf(request.getStatus())),null);
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         else {
             response = new Responses<>("99", "Invalid Request ID",null);
@@ -202,6 +236,12 @@ public class RequestController {
                     findRequest.getCommentData().add(new CommentData(bulkDto.getTechnician(), "Marked as resolved and awaiting confirmation", LocalDateTime.now()));
                     requestRepository.save(findRequest);
                     response.put("code", "00");
+                    try {
+                        emailService.sendEmail(findRequest, MessagePreference.valueOf(String.valueOf(findRequest.getStatus())), null);
+                    }catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
                 } else {
                     response.put("code", "99");
                 }
@@ -220,6 +260,11 @@ public class RequestController {
 //                    findRequest.getComments().add("Marked as Closed");
                     findRequest.setClosureComments("Marked as Closed");
                     requestRepository.save(findRequest);
+                    try {
+                        emailService.sendEmail(findRequest, MessagePreference.valueOf(String.valueOf(findRequest.getStatus())), null);
+                    }catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     response.put("code", "00");
                 } else {
                     response.put("code", "99");
