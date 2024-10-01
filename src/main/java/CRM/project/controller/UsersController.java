@@ -66,6 +66,31 @@ public class UsersController {
             return new ResponseEntity<>(new Responses<>("00", "Success", userDto), HttpStatus.OK);
         }
 
+        if(userDetails.get("username").equalsIgnoreCase("donjoku")) {
+            Department department = new Department(1L, "Database", "database@gmail.com", null);
+            List<String> roles = Arrays.asList("user", "admin");
+            Users users = new Users(1L, department, "Daniel Okoroafor","donjoku",null, UserStatus.ACTIVE, Availability.ONLINE, null);
+            UserDto userDto = new UserDto(users, roles, null);
+            return new ResponseEntity<>(new Responses<>("00", "Success", userDto), HttpStatus.OK);
+        }
+
+
+        if(userDetails.get("username").equalsIgnoreCase("oalabi")) {
+            Department department = new Department(1L, "Operations", "operations@gmail.com", null);
+            List<String> roles = Arrays.asList("user", "manager");
+            Users users = new Users(1L, department, "Olatunde Alabi","oalabi",null, UserStatus.ACTIVE, Availability.ONLINE, null);
+            UserDto userDto = new UserDto(users, roles, null);
+            return new ResponseEntity<>(new Responses<>("00", "Success", userDto), HttpStatus.OK);
+        }
+
+        if(userDetails.get("username").equalsIgnoreCase("potokunbo")) {
+            Department department = new Department(1L, "Operations", "operations@gmail.com", null);
+            List<String> roles = Arrays.asList("user", "technician");
+            Users users = new Users(1L, department, "Patrick Tokunbo","potokunbo",null, UserStatus.ACTIVE, Availability.ONLINE, null);
+            UserDto userDto = new UserDto(users, roles, null);
+            return new ResponseEntity<>(new Responses<>("00", "Success", userDto), HttpStatus.OK);
+        }
+
         if (userDetails.get("username") == null || userDetails.get("password") == null) {
             return new ResponseEntity<>(new Responses<>("99", "Invalid Credentials", null), HttpStatus.BAD_REQUEST);
         }
