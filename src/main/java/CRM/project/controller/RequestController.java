@@ -11,6 +11,7 @@ import CRM.project.repository.UsersRepository;
 import CRM.project.response.Responses;
 import CRM.project.service.EmailServiceImpl;
 import CRM.project.service.RequestService;
+import CRM.project.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.Response;
 import org.apache.logging.log4j.util.Timer;
@@ -84,7 +85,7 @@ public class RequestController {
     public ResponseEntity<?> downloadAttachmentsFromFileSystem(@RequestBody Map<String, String> data) throws IOException {
         log.info(data.get("fileName"));
         try {
-            byte[] imageData=requestService.readFile(data.get("filePath"));
+            byte[] imageData= Utils.readFile(data.get("filePath"));
 
             HttpHeaders headers = new HttpHeaders();
 //            headers.setContentType(MediaType.APPLICATION_PDF);
@@ -306,7 +307,9 @@ public class RequestController {
             request.setUnit(data.get("newUnit"));
             AuditTrail auditTrail = new AuditTrail(data.get("routedBy"), "Routed request to "+request.getUnit(), LocalDateTime.now());
             request.getAuditTrails().add(auditTrail);
-            request.setTechnician(requestService.findLeastAssignedTechnician(data.get("newUnit")));
+            String technician = requestService.findLeastAssignedTechnician(data.get("newUnit"));
+            request.setTechnician(technician == null ? "Unassigned" : technician);
+            request.setEmail(departmentRepository.findByDepartmentName(data.get("newUnit")).get().getEmail());
             requestRepository.save(request);
             return new ResponseEntity<>(new Responses<>("00", "Redirected successfully", null), HttpStatus.OK);
         }

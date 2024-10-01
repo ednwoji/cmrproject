@@ -4,15 +4,20 @@ package CRM.project.controller;
 import CRM.project.entity.Solutions;
 import CRM.project.response.Responses;
 import CRM.project.service.SolutionsService;
+import CRM.project.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/solutions")
@@ -64,4 +69,36 @@ public class SolutionsController {
         List<Solutions> solutionsList = solutionsService.fetchAllSolutions();
         return new ResponseEntity<>(new Responses<>("00", "Success", solutionsList), HttpStatus.OK);
     }
+
+
+    @PostMapping("/deleteSolution")
+    public ResponseEntity<?> deleteSolution(@RequestBody Map<String, String> payload) {
+        Solutions solutions = solutionsService.findSolutionById(payload.get("solutionId"));
+        if(solutions != null) {
+            solutionsService.deleteSolution(solutions);
+            return new ResponseEntity<>(new Responses<>("00", "Solution deleted", null), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new Responses<>("90", "Invalid Solution", null), HttpStatus.OK);
+    }
+
+
+    @PostMapping("/downloadSolution")
+    public ResponseEntity<?> downloadSolutionMaterial(@RequestBody Map<String, String> data) throws IOException {
+        log.info(data.get("fileName"));
+        log.info(data.get("filePath"));
+        try {
+            byte[] imageData= Utils.readFile(data.get("filePath"));
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.valueOf(data.get("fileType")));
+            headers.setContentDispositionFormData("attachment", data.get("fileName").split("\\.")[0]);
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(imageData);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+
+    }
+
 }

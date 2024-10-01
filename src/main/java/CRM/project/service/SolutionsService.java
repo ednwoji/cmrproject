@@ -6,6 +6,7 @@ import CRM.project.repository.SolutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 import static CRM.project.utils.Utils.saveFiles;
@@ -24,7 +25,7 @@ public class SolutionsService {
 
         String saveResult = saveFiles(solutions.getFile(), filePath, solutions.getFileName());
         if(saveResult.equalsIgnoreCase("success")) {
-            solutions.setFilePath(filePath+solutions.getFileName());
+            solutions.setFilePath(filePath+"/"+solutions.getFileName());
             return solutionRepository.save(solutions);
         }
 
@@ -36,5 +37,14 @@ public class SolutionsService {
 
     public List<Solutions> fetchAllSolutions() {
         return solutionRepository.findAll();
+    }
+
+    public Solutions findSolutionById(String solutionId) {
+        return solutionRepository.findBySolutionId(Long.valueOf(solutionId)).orElse(null);
+    }
+
+    @Transactional
+    public void deleteSolution(Solutions solutions) {
+        solutionRepository.deleteBySolutionId(solutions.getSolutionId());
     }
 }

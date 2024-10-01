@@ -149,8 +149,13 @@ public class RequestService {
         }
 
         else {
-            log.info("First Team member is:: "+allTeamMembers.stream().findAny().get().getStaffName());
-            return allTeamMembers.get(0).getStaffName();
+            if(allTeamMembers.isEmpty()) {
+                return null;
+            }
+            else {
+                log.info("First Team member is:: " + allTeamMembers.stream().findAny().get().getStaffName());
+                return allTeamMembers.get(0).getStaffName();
+            }
         }
 
         return null;
@@ -254,9 +259,9 @@ public class RequestService {
         return monthlyRequests;
     }
 
-    public byte[] readFile(String filePath) throws IOException {
-      return Files.readAllBytes(Paths.get(filePath));
-    }
+//    public byte[] readFile(String filePath) throws IOException {
+//      return Files.readAllBytes(Paths.get(filePath));
+//    }
 
     public List<RequestEntity> fetchAllRequestsByStatus(Status status) {
         return requestRepository.findByStatus(status);

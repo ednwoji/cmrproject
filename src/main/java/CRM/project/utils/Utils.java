@@ -12,6 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.UUID;
 
 
@@ -81,5 +83,9 @@ public class Utils {
             log.error("Error saving file: " + e.getMessage(), e);
             return "error";
         }
+    }
+
+    public static byte[] readFile(String filePath) throws IOException {
+        return Files.readAllBytes(Paths.get(filePath));
     }
 }
