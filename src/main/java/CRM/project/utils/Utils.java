@@ -7,6 +7,12 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.UUID;
 
 
 @Service
@@ -56,4 +62,24 @@ public class Utils {
         return responseEntity.getBody();
     }
 
+
+    public static String saveFiles(byte[] fileBytes, String path, String fileName) {
+
+        try {
+            File directory = new File(path);
+            if (!directory.exists()) {
+                directory.mkdirs();
+            }
+
+            File outputFile = new File(directory, fileName);
+            try (FileOutputStream outputStream = new FileOutputStream(outputFile)) {
+                outputStream.write(fileBytes);
+                log.info("File saved successfully to: " + outputFile.getAbsolutePath());
+                return "success";
+            }
+        } catch (IOException e) {
+            log.error("Error saving file: " + e.getMessage(), e);
+            return "error";
+        }
+    }
 }

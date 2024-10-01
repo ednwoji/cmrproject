@@ -1,0 +1,54 @@
+2024-09-30T13:47:02.062Z 2024-09-30 13:47:02.062  INFO 1 --- [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2024-09-30T13:47:02.219Z 2024-09-30 13:47:02.219  INFO 1 --- [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.15.Final
+2024-09-30T13:47:02.813Z 2024-09-30 13:47:02.812  INFO 1 --- [           main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2024-09-30T13:47:04.037Z 2024-09-30 13:47:04.036  INFO 1 --- [           main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.SQLServer2016Dialect
+2024-09-30T13:46:58.303Z 2024-09-30 13:46:58.303  INFO 1 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2024-09-30T13:46:58.627Z 2024-09-30 13:46:58.627  INFO 1 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 299 ms. Found 7 JPA repository interfaces.
+2024-09-30T13:47:01.054Z 2024-09-30 13:47:01.053  INFO 1 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 9091 (http)
+2024-09-30T13:47:01.102Z 2024-09-30 13:47:01.101  INFO 1 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2024-09-30T13:47:01.102Z 2024-09-30 13:47:01.102  INFO 1 --- [           main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.80]
+2024-09-30T13:47:01.365Z 2024-09-30 13:47:01.365  INFO 1 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2024-09-30T13:47:01.366Z 2024-09-30 13:47:01.365  INFO 1 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 5565 ms
+2024-09-30T13:47:06.664Z 2024-09-30 13:47:06.663  INFO 1 --- [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2024-09-30T13:47:06.705Z 2024-09-30 13:47:06.705  INFO 1 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2024-09-30T13:47:08.820Z 2024-09-30 13:47:08.820  WARN 1 --- [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2024-09-30T13:47:10.248Z 2024-09-30 13:47:10.248  INFO 1 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 9091 (http) with context path ''
+2024-09-30T13:47:10.319Z 2024-09-30 13:47:10.319  INFO 1 --- [           main] c.A.A.ArchivalServiceApplication         : Started ArchivalServiceApplication in 16.756 seconds (JVM running for 18.639)
+2024-09-30T13:47:10.400Z 2024-09-30 13:47:10.399  INFO 1 --- [   scheduling-1] c.A.ArchivalService.Config.TaskConfig    : Running Footage Task Every 6 Hours
+2024-09-30T13:47:10.633Z Hibernate: SELECT * FROM upload WHERE atmstatus = '1'
+2024-09-30T13:47:10.768Z 2024-09-30 13:47:10.768  WARN 1 --- [   scheduling-1] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: null
+2024-09-30T13:47:10.769Z 2024-09-30 13:47:10.768  WARN 1 --- [   scheduling-1] o.h.engine.jdbc.spi.SqlExceptionHelper   : Warning: setSchema is a no-op in this driver version.
+2024-09-30T13:47:10.822Z 2024-09-30 13:47:10.822  INFO 1 --- [   scheduling-1] c.A.ArchivalService.Config.TaskConfig    : First estate in the list::: upload(id=10618513, Branch=ILE IFE, Terminal=10322675, atm=NCR, IP=10.145.91.2, code=267, branchCode=267-ILE IFE, state_=OSUN, atmStatus=1)
+2024-09-30T13:47:10.826Z 2024-09-30 13:47:10.824  INFO 1 --- [pool-2-thread-1] c.A.A.Services.FootageServiceImpl        : Attempting NCR ATM::: 10322675 
+2024-09-30T13:47:10.827Z 2024-09-30 13:47:10.827  INFO 1 --- [pool-2-thread-2] c.A.A.Services.FootageServiceImpl        : Attempting Hyosung ATM with Terminal 10322841 
+2024-09-30T13:47:10.830Z 2024-09-30 13:47:10.830  INFO 1 --- [pool-2-thread-3] c.A.A.Services.FootageServiceImpl        : Attempting Hyosung ATM with Terminal 10322842 
+2024-09-30T13:47:10.831Z 2024-09-30 13:47:10.831  INFO 1 --- [pool-2-thread-4] c.A.A.Services.FootageServiceImpl        : Attempting NCR ATM::: 10324001 
+2024-09-30T13:47:10.833Z 2024-09-30 13:47:10.832  INFO 1 --- [pool-2-thread-5] c.A.A.Services.FootageServiceImpl        : Attempting Hyosung ATM with Terminal 10324004 
+2024-09-30T13:47:10.835Z 2024-09-30 13:47:10.835  INFO 1 --- [pool-2-thread-7] c.A.A.Services.FootageServiceImpl        : Attempting NCR ATM::: 10324923 
+2024-09-30T13:47:10.898Z 2024-09-30 13:47:10.897  INFO 1 --- [pool-2-thread-8] c.A.A.Services.FootageServiceImpl        : Attempting NCR ATM::: 10326575 
+2024-09-30T13:47:10.901Z 2024-09-30 13:47:10.898  INFO 1 --- [pool-2-thread-9] c.A.A.Services.FootageServiceImpl        : Attempting NCR ATM::: 10326822 
+2024-09-30T13:47:10.902Z 2024-09-30 13:47:10.899  INFO 1 --- [ool-2-thread-11] c.A.A.Services.FootageServiceImpl        : Attempting Hyosung ATM with Terminal 1032400B 
+2024-09-30T15:02:54.018Z 2024-09-30 15:02:54.016  INFO 1 --- [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2024-09-30T13:46:55.013Z   .   ____          _            __ _ _
+2024-09-30T13:46:55.013Z  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2024-09-30T13:46:55.013Z ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2024-09-30T13:46:55.013Z  \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2024-09-30T13:46:55.013Z   '  |____| .__|_| |_|_| |_\__, | / / / /
+2024-09-30T13:46:55.013Z  =========|_|==============|___/=/_/_/_/
+2024-09-30T13:46:55.024Z  :: Spring Boot ::               (v2.7.16)
+2024-09-30T13:46:55.403Z 2024-09-30 13:46:55.372  INFO 1 --- [           main] c.A.A.ArchivalServiceApplication         : Starting ArchivalServiceApplication v0.0.1-SNAPSHOT using Java 17.0.2 on ip-10-120-65-49.eu-west-1.compute.internal with PID 1 (/archival-service/Archival-Service.jar started by root in /archival-service)
+2024-09-30T13:46:55.420Z 2024-09-30 13:46:55.419  INFO 1 --- [           main] c.A.A.ArchivalServiceApplication         : No active profile set, falling back to 1 default profile: "default"
+2024-09-30T14:47:10.316Z 2024-09-30 14:47:10.316  INFO 1 --- [   scheduling-1] c.A.ArchivalService.Config.TaskConfig    : Running Footage Task Every 6 Hours
+2024-09-30T14:47:10.318Z Hibernate: SELECT * FROM upload WHERE atmstatus = '1'
+2024-09-30T14:47:10.388Z 2024-09-30 14:47:10.387  WARN 1 --- [   scheduling-1] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: null
+2024-09-30T14:47:10.388Z 2024-09-30 14:47:10.388  WARN 1 --- [   scheduling-1] o.h.engine.jdbc.spi.SqlExceptionHelper   : Warning: setSchema is a no-op in this driver version.
+2024-09-30T14:47:10.390Z 2024-09-30 14:47:10.390  INFO 1 --- [   scheduling-1] c.A.ArchivalService.Config.TaskConfig    : First estate in the list::: upload(id=10618513, Branch=ILE IFE, Terminal=10322675, atm=NCR, IP=10.145.91.2, code=267, branchCode=267-ILE IFE, state_=OSUN, atmStatus=1)
+2024-09-30T14:47:10.391Z 2024-09-30 14:47:10.391  INFO 1 --- [pool-3-thread-1] c.A.A.Services.FootageServiceImpl        : Attempting NCR ATM::: 10322675 
+2024-09-30T14:47:10.392Z 2024-09-30 14:47:10.392  INFO 1 --- [pool-3-thread-2] c.A.A.Services.FootageServiceImpl        : Attempting Hyosung ATM with Terminal 10322841 
+2024-09-30T14:47:10.395Z 2024-09-30 14:47:10.394  INFO 1 --- [pool-3-thread-3] c.A.A.Services.FootageServiceImpl        : Attempting Hyosung ATM with Terminal 10322842 
+2024-09-30T14:47:10.396Z 2024-09-30 14:47:10.396  INFO 1 --- [pool-3-thread-4] c.A.A.Services.FootageServiceImpl        : Attempting NCR ATM::: 10324001 
+2024-09-30T14:47:10.399Z 2024-09-30 14:47:10.399  INFO 1 --- [pool-3-thread-5] c.A.A.Services.FootageServiceImpl        : Attempting Hyosung ATM with Terminal 10324004 
+2024-09-30T14:47:10.403Z 2024-09-30 14:47:10.402  INFO 1 --- [pool-3-thread-8] c.A.A.Services.FootageServiceImpl        : Attempting NCR ATM::: 10326575 
+2024-09-30T14:47:10.403Z 2024-09-30 14:47:10.403  INFO 1 --- [pool-3-thread-9] c.A.A.Services.FootageServiceImpl        : Attempting NCR ATM::: 10326822 
+2024-09-30T14:47:10.406Z 2024-09-30 14:47:10.404  INFO 1 --- [ool-3-thread-11] c.A.A.Services.FootageServiceImpl        : Attempting Hyosung ATM with Terminal 1032400B 
+2024-09-30T14:47:10.406Z 2024-09-30 14:47:10.405  INFO 1 --- [pool-3-thread-7] c.A.A.Services.FootageServiceImpl        : Attempting NCR ATM::: 10324923 

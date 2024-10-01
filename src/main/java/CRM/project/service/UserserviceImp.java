@@ -91,7 +91,7 @@ public class UserserviceImp implements UsersService {
             return new Responses("90", "Invalid User", null);
         }
         else {
-            users.setAvailability(Availability.fromCode(data.get("availability")));
+            users.setAvailability(Availability.valueOf(data.get("availability")));
             Users users1 = usersRepository.save(users);
             return new Responses("00", "User updated successfully", users1);
         }

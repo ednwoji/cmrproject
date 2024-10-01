@@ -18,7 +18,7 @@ public interface RequestRepository extends JpaRepository<RequestEntity,Integer> 
 
     List<RequestEntity> findByUnit(String unit);
 
-    Optional<RequestEntity> findByStatus(String status);
+    List<RequestEntity> findByStatus(Status status);
 
     List<RequestEntity> findByStatusAndUnit(Status status, String department);
 

@@ -107,7 +107,7 @@ public class RequestService {
         return images;
     }
 
-    private String findLeastAssignedTechnician(String unitName) {
+    public String findLeastAssignedTechnician(String unitName) {
 
         Department department = departmentRepository.findByDepartmentName(unitName).orElse(null);
         List<RequestEntity> allRequestsForTheDay = requestRepository.findByUnitAndCreatedTimeBetween(unitName, LocalDate.now().atStartOfDay(), LocalDate.now().atTime(LocalTime.MAX));
@@ -256,5 +256,9 @@ public class RequestService {
 
     public byte[] readFile(String filePath) throws IOException {
       return Files.readAllBytes(Paths.get(filePath));
+    }
+
+    public List<RequestEntity> fetchAllRequestsByStatus(Status status) {
+        return requestRepository.findByStatus(status);
     }
 }

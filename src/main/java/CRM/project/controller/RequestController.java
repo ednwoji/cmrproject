@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -134,17 +135,26 @@ public class RequestController {
     }
 
 
+    @PostMapping("/fetchAllRequestsBank")
+    public ResponseEntity<?> findAllRequests(@RequestBody Requestdto requestdto) {
+        log.info("Incoming requests::: {} ",requestdto.toString());
+
+        List<RequestEntity> fetchRequests = requestService.fetchAllRequestsByStatus(Status.valueOf(requestdto.getStatus()));
+        return new ResponseEntity<>(fetchRequests, HttpStatus.OK);
+    }
+
     @PostMapping("/updateRequestTechnician")
+    @Transactional
     public ResponseEntity<?> assignRequestToTechnician(@RequestBody Map<String, String> data) {
 
         Map<String, String> response = new HashMap<>();
-        RequestEntity request = requestRepository.findById(Integer.parseInt(data.get("requestId"))).orElse(null);
+        RequestEntity request = requestRepository.findByRequestId(data.get("requestId")).orElse(null);
 
         if(request != null) {
-            List<AuditTrail> auditList = Arrays.asList(new AuditTrail(request.getTechnician(), "Assigned request to "+data.get("newTechnician"), LocalDateTime.now()));
-            request.setAuditTrails(auditList);
+            AuditTrail newAudit = new AuditTrail(request.getTechnician(), "Assigned request to "+data.get("newTechnician"), LocalDateTime.now());
+            request.getAuditTrails().add(newAudit);
             request.setTechnician(data.get("newTechnician"));
-
+            log.info("Request is::: {} ", request.toString());
             requestRepository.save(request);
             response.put("code", "00");
         }
@@ -286,5 +296,22 @@ public class RequestController {
     @PostMapping("/monthlyRequest")
     public ResponseEntity<?> findRequestsByMonth(@RequestBody Map<String, String> data) {
         return new ResponseEntity<>(requestService.getRequestsPerMonth(data.get("userName")), HttpStatus.OK);
+    }
+
+    @PostMapping("/redirect-request")
+    public ResponseEntity<?> RedirectRequests(@RequestBody Map<String, String> data) {
+
+        RequestEntity request = requestRepository.findByRequestId(data.get("requestId")).orElse(null);
+        if(request != null) {
+            request.setUnit(data.get("newUnit"));
+            AuditTrail auditTrail = new AuditTrail(data.get("routedBy"), "Routed request to "+request.getUnit(), LocalDateTime.now());
+            request.getAuditTrails().add(auditTrail);
+            request.setTechnician(requestService.findLeastAssignedTechnician(data.get("newUnit")));
+            requestRepository.save(request);
+            return new ResponseEntity<>(new Responses<>("00", "Redirected successfully", null), HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(new Responses<>("99", "Invalid request ID", null), HttpStatus.OK);
+
     }
 }
