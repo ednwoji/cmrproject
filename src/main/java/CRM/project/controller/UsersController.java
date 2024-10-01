@@ -76,7 +76,7 @@ public class UsersController {
 
 
         if(userDetails.get("username").equalsIgnoreCase("oalabi")) {
-            Department department = new Department(1L, "Operations", "operations@gmail.com", null);
+            Department department = new Department(1L, "Database", "operations@gmail.com", null);
             List<String> roles = Arrays.asList("user", "manager");
             Users users = new Users(1L, department, "Olatunde Alabi","oalabi",null, UserStatus.ACTIVE, Availability.ONLINE, null);
             UserDto userDto = new UserDto(users, roles, null);
@@ -150,8 +150,10 @@ public class UsersController {
     @PostMapping("/findByUnit")
     public ResponseEntity<?> fetchByUnit(@RequestBody Requestdto requestdto) {
         List<Users> usersList = usersService.fetchStaffByUnit(requestdto.getUnitName());
-        for(Users user: usersList) {
-            user.setUserRoles(getRolesForUser(user.getUserEmail()));
+        if(!usersList.isEmpty()) {
+            for (Users user : usersList) {
+                user.setUserRoles(getRolesForUser(user.getUserEmail()));
+            }
         }
         return new ResponseEntity<>(usersList, HttpStatus.OK);
     }
