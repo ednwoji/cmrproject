@@ -3,7 +3,7 @@ package CRM.project.controller;
 
 import CRM.project.entity.Solutions;
 import CRM.project.response.Responses;
-import CRM.project.service.NotificationService;
+//import CRM.project.service.NotificationService;
 import CRM.project.service.SolutionsService;
 import CRM.project.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
@@ -33,8 +33,8 @@ public class SolutionsController {
     @Autowired
     private SolutionsService solutionsService;
 
-    @Autowired
-    private NotificationService notificationService;
+//    @Autowired
+//    private NotificationService notificationService;
 
     @PostMapping("/add-solutions")
     public ResponseEntity<?> addSolutions(@RequestParam("file")MultipartFile file,
@@ -109,21 +109,20 @@ public class SolutionsController {
     }
 
 
-    @PostMapping("/testWeb")
-    public ResponseEntity<?> testingWebSockets() {
-
-        log.info("Sending request to test sockets");
-//        notificationService.sendNotification("Confirmed Okay");
-        CompletableFuture.runAsync(() -> {
-            try {
-                log.info("Inside the thread:::");
-                notificationService.sendNotification("Confirmed Okay");
-            } catch (Exception e) {
-                e.printStackTrace();
-                log.error("Error processing payment: {}", e.getMessage());
-            }
-        });
-        return new ResponseEntity<>(new Responses<>("00", "Success", null), HttpStatus.OK);
-
-    }
+//    @PostMapping("/testWeb")
+//    public ResponseEntity<?> testingWebSockets() {
+//
+//        log.info("Sending request to test sockets");
+//        CompletableFuture.runAsync(() -> {
+//            try {
+//                log.info("Inside the thread:::");
+//                notificationService.sendNotification("Confirmed Okay");
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//                log.error("Error processing payment: {}", e.getMessage());
+//            }
+//        });
+//        return new ResponseEntity<>(new Responses<>("00", "Success", null), HttpStatus.OK);
+//
+//    }
 }

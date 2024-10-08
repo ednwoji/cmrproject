@@ -186,8 +186,21 @@ public class RequestController {
             request.setStatus(Status.valueOf(data.get("status")));
             request.setClosureComments(data.get("closureComments"));
             request.getCommentData().add(new CommentData(data.get("closedBy"), data.get("closureComments"), LocalDateTime.now()));
-            request.setClosureTime(LocalDateTime.now());
             request.setRating(Integer.parseInt(data.get("rating")));
+            if(Status.valueOf(data.get("status")) == Status.RESOLVED) {
+                AuditTrail newAudit = new AuditTrail(request.getTechnician(), "Marked request as resolved", LocalDateTime.now());
+                request.getAuditTrails().add(newAudit);
+                request.setResolutionTime(LocalDateTime.now());
+                request.setResolutionTechnician(data.get("closedBy"));
+                request.setResolvedWithinSla(request.getDueDate().isAfter(request.getResolutionTime()));
+            }
+
+            if(Status.valueOf(data.get("status")) == Status.CLOSED) {
+                AuditTrail newAudit = new AuditTrail(request.getRequester(), "Marked request as closed", LocalDateTime.now());
+                request.getAuditTrails().add(newAudit);
+                request.setClosureTime(LocalDateTime.now());
+            }
+
             requestRepository.save(request);
             response = new Responses<>("00", "Success",null);
             try{

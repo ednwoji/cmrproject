@@ -11,6 +11,7 @@ import CRM.project.response.Responses;
 import CRM.project.service.DepartmentService;
 import CRM.project.service.UsersService;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.Array;
 import java.util.*;
@@ -18,8 +19,14 @@ import java.util.*;
 import com.microsoft.schemas._2003._10.serialization.arrays.ArrayOfstring;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.User;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -75,10 +82,10 @@ public class UsersController {
         }
 
 
-        if(userDetails.get("username").equalsIgnoreCase("oalabi")) {
+        if(userDetails.get("username").equalsIgnoreCase("agalabi")) {
             Department department = new Department(1L, "Database", "operations@gmail.com", null);
-            List<String> roles = Arrays.asList("user", "manager");
-            Users users = new Users(1L, department, "Olatunde Alabi","oalabi",null, UserStatus.ACTIVE, Availability.ONLINE, null);
+            List<String> roles = Arrays.asList("user", "manager","admin", "technician");
+            Users users = new Users(1L, department, "Ayomide Alabi","agalabi",null, UserStatus.ACTIVE, Availability.ONLINE, null);
             UserDto userDto = new UserDto(users, roles, null);
             return new ResponseEntity<>(new Responses<>("00", "Success", userDto), HttpStatus.OK);
         }
@@ -192,4 +199,49 @@ public class UsersController {
         }
 
     }
+
+    @PostMapping("/exportUsers")
+    public ResponseEntity<?> exportUsers() {
+        List<Users> userList = usersService.findAllUsers();
+
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Users");
+
+        // Create header row
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("Unit Name");
+        headerRow.createCell(1).setCellValue("Staff Name");
+        headerRow.createCell(2).setCellValue("Username");
+        headerRow.createCell(3).setCellValue("Status");
+        headerRow.createCell(4).setCellValue("Availability");
+
+        // Populate data rows
+        int rowNum = 1;
+        for (Users user : userList) {
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue(user.getUnitName().getDepartmentName());
+            row.createCell(1).setCellValue(user.getStaffName());
+            row.createCell(2).setCellValue(user.getUserEmail());
+            row.createCell(3).setCellValue(String.valueOf(user.getStatus()));
+            row.createCell(4).setCellValue(String.valueOf(user.getAvailability()));
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=users.xlsx");
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+        // Write the workbook to a byte array
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+            workbook.write(baos);
+            workbook.close();
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while exporting data");
+        }
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(baos.toByteArray());
+    }
+
 }

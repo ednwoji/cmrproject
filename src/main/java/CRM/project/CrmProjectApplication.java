@@ -34,8 +34,6 @@ public class CrmProjectApplication extends SpringBootServletInitializer {
 
 	public static void main(String[] args) {
 		SpringApplication.run(CrmProjectApplication.class, args);
-//		Department department = new Department();
-//		department.setDepartmentName("Operation");
 	}
 
 

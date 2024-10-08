@@ -58,6 +58,10 @@ public class RequestEntity extends TimeClass {
     @CollectionTable(name = "request_entity_comment_data", joinColumns = @JoinColumn(name = "helpdesk_request_id"))
     private List<CommentData> commentData;
 
+    private LocalDateTime resolutionTime;
+    private String resolutionTechnician;
+    private boolean resolvedWithinSla = false;
+
     private String closureComments;
     private LocalDateTime closureTime;
     private int rating;

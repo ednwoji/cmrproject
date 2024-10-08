@@ -75,6 +75,7 @@ public class RequestService {
                 }
             }
             requestEntity.setStatus(Status.OPEN);
+            requestEntity.setResolvedWithinSla(true);
             requestEntity.setLogTime(LocalDateTime.now());
             log.info("Request Entity:::::: "+requestEntity);
             try {

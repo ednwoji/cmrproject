@@ -50,6 +50,7 @@ public class Reports {
 
     @Column(name = "report_query")
     @JsonIgnore
+    @Lob
     private String reportQuery;
 }
 
