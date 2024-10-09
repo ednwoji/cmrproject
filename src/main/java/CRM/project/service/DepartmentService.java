@@ -13,4 +13,5 @@ public interface DepartmentService {
     List<Department> getDepartments();
 
 
+    Department findDepartmentById(String deptId);
 }

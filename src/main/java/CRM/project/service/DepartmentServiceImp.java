@@ -32,5 +32,10 @@ public class DepartmentServiceImp implements DepartmentService {
         return departmentRepository.findAll();
     }
 
+    @Override
+    public Department findDepartmentById(String deptId) {
+        return departmentRepository.findAllBydepartmentId(Long.valueOf(deptId)).orElse(null);
+    }
+
 
 }

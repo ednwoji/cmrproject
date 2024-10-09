@@ -42,6 +42,9 @@ public class UsersController {
     @Autowired
     private UsersService usersService;
 
+    @Autowired
+    private DepartmentService departmentService;
+
     private final String MODULE_ID = "fcubs";
 
     public boolean authenticateUser(String username, String password) {
@@ -82,13 +85,6 @@ public class UsersController {
         }
 
 
-        if(userDetails.get("username").equalsIgnoreCase("agalabi")) {
-            Department department = new Department(1L, "Database", "operations@gmail.com", null);
-            List<String> roles = Arrays.asList("user", "manager","admin", "technician");
-            Users users = new Users(1L, department, "Ayomide Alabi","agalabi",null, UserStatus.ACTIVE, Availability.ONLINE, null);
-            UserDto userDto = new UserDto(users, roles, null);
-            return new ResponseEntity<>(new Responses<>("00", "Success", userDto), HttpStatus.OK);
-        }
 
         if(userDetails.get("username").equalsIgnoreCase("potokunbo")) {
             Department department = new Department(1L, "Operations", "operations@gmail.com", null);
@@ -244,4 +240,18 @@ public class UsersController {
                 .body(baos.toByteArray());
     }
 
+
+    @PostMapping("/updateuser")
+    public ResponseEntity<?> EditUserDepartment(@RequestBody Map<String, String> data) {
+        Department department = departmentService.findDepartmentById(data.get("deptId"));
+        if(department != null) {
+            Users users = usersService.fetchUserById(Long.valueOf(data.get("userId")));
+            if(users != null) {
+                users.setUnitName(department);
+                usersService.saveUser(users);
+                return new ResponseEntity<>(new Responses<>("00", "User Updated Successfully", null), HttpStatus.OK);
+            }
+        }
+        return new ResponseEntity<>(new Responses<>("90", "User Updated Failed", null), HttpStatus.OK);
+    }
 }
