@@ -21,6 +21,7 @@ public class SubCategory extends TimeClass {
     @ManyToOne
     @JoinColumn(name = "department_id")
     private Department department;
+
     private int sla;
 
     @ManyToOne

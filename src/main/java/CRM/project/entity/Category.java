@@ -20,10 +20,6 @@ public class Category extends TimeClass {
     private long categoryId;
     private String categoryName;
 
-    @ManyToOne
-    @JoinColumn(name = "department_id")
-    private Department unitName;
-
     @Transient
     private String department;
 //    @OneToMany

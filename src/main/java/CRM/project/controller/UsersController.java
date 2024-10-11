@@ -4,7 +4,6 @@ import CRM.project.dto.Availability;
 import CRM.project.dto.Requestdto;
 import CRM.project.dto.UserDto;
 import CRM.project.entity.Department;
-import CRM.project.entity.RequestEntity;
 import CRM.project.entity.UserStatus;
 import CRM.project.entity.Users;
 import CRM.project.response.Responses;
@@ -13,12 +12,10 @@ import CRM.project.service.UsersService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.sql.Array;
 import java.util.*;
 
-import com.microsoft.schemas._2003._10.serialization.arrays.ArrayOfstring;
+import CRM.project.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.User;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -66,7 +63,7 @@ public class UsersController {
 
 
     @PostMapping("/validate-user")
-    public ResponseEntity<?> validateUser(@RequestBody Map<String, String> userDetails) {
+    public ResponseEntity<?> validateUser(@RequestBody Map<String, String> userDetails) throws Exception {
 
         if(userDetails.get("username").equalsIgnoreCase("admin")) {
             Department department = new Department(1L, "Database", "operations@gmail.com", null);
@@ -113,9 +110,8 @@ public class UsersController {
             if(userRoles.isEmpty()) {
                 return new ResponseEntity<>(new Responses<>("45", "Please engage Access Control for access", null), HttpStatus.OK);
             }
-            UserDto userDto = new UserDto(users, userRoles, null);
+            UserDto userDto = new UserDto(users, userRoles, Utils.getAuthServToken());
             return new ResponseEntity<>(new Responses<>("00", "Success", userDto), HttpStatus.OK);
-
         } else {
             return new ResponseEntity<>(new Responses<>("99", "Wrong credentials", null), HttpStatus.OK);
         }

@@ -32,10 +32,8 @@ public class CategoryServiceImp implements CategoryService {
     private DepartmentRepository departmentRepository;
     @Override
     public Category addNewCategory(Category category) {
-        Department department1=departmentRepository.findByDepartmentName(category.getDepartment()).orElse(null);
 
-        if(department1 != null) {
-            category.setUnitName(department1);
+        if(category.getCategoryName() != null) {
             Category category1 = categoryRepository.findByCategoryName(category.getCategoryName()).orElse(null);
             return category1 == null ? categoryRepository.save(category) : null;
         }
