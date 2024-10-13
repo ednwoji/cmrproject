@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import javax.persistence.Lob;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -20,6 +21,7 @@ public class CommentData {
     private String user;
 
     @Column(name = "user_comment")
+    @Lob
     private String comment;
 
     @Column(name = "comment_time")

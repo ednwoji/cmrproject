@@ -88,4 +88,12 @@ public class SubCategoryController {
 
     }
 
+    @PostMapping("/fetchdeptbysubcategory")
+    public ResponseEntity<?> findDepartmentsBySubCategory(@RequestBody Map<String, String> data) {
+        log.info("Incoming request:::: "+data.toString());
+        if(data.get("subCategoryName") != null) {
+            return new ResponseEntity<>(new Responses<>("00", "Success",  subCategoryService.fetchSubCategoriesByDept(data.get("subCategoryName"))), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new Responses<>("45", "Invalid sub-category", null), HttpStatus.BAD_REQUEST);
+    }
 }

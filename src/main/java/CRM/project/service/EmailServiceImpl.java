@@ -33,12 +33,11 @@ public class EmailServiceImpl {
 
     public EmailResponse sendEmail(RequestEntity request, MessagePreference messageType, byte[] attachment) throws Exception {
         EmailDto emailReq = new EmailDto();
-        Users requester = usersService.fetchStaffByFullName(request.getRequester());
         Users technician = usersService.fetchStaffByFullName(request.getTechnician());
         String suffix = "@unionbankng.com";
 
-        String requesterEmail = requester.getUserEmail()+suffix;
-        String technicianEmail = technician.getUserEmail()+suffix;
+        String requesterEmail = request.getRequesterUserName()+suffix;
+        String technicianEmail = technician!= null ? technician.getUserEmail()+suffix : "";
 
         switch (request.getStatus()) {
             case RESOLVED:
@@ -62,6 +61,8 @@ public class EmailServiceImpl {
         }
         else if(messageType == MessagePreference.CLOSED) {
             initiatorMessagePreference = MessagePreference.INITIATORCLOSURE;
+        }else {
+            initiatorMessagePreference = MessagePreference.OTHERS;
         }
 
         EmailResponse responses = null;
@@ -77,7 +78,7 @@ public class EmailServiceImpl {
             emailReq.setSender(new EmailDto.Sender(emailReq.getSubject(), "itcare@unionbankng.com"));
 
             emailReq.setRecipients(recList);
-            emailReq.setBody(emailForUsers(initiatorMessagePreference, requester.getStaffName(), request));
+            emailReq.setBody(emailForUsers(initiatorMessagePreference, request.getRequester(), request));
 
             String token = Utils.getAuthServToken();
             HttpHeaders headers = Utils.createHeaders(token);
@@ -166,9 +167,14 @@ public class EmailServiceImpl {
                         .append("<p>Please login to check other requests</p>");
 
                 break;
+            case OTHERS:
+                htmlContent.append("<p>Request have been updated successfully with a new status.</p>")
+                        .append("<p>Please login to check details</p>");
+                break;
 
             default:
-                htmlContent.append("<p>Unknown message type.</p>");
+                htmlContent.append("<p>Request updated successfully with a new status.</p>")
+                        .append("<p>Please login to check details</p>");
                 break;
         }
 

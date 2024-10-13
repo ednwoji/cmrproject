@@ -12,6 +12,7 @@ import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -39,17 +40,26 @@ public class RequestEntity extends TimeClass {
    private String priority;
    private String category;
    private String subCategory;
+
+   @Lob
+   @Column(length = 10485760)
    private String description;
    private String technician;
-   private String name;
-   private String type;
+
+    @ElementCollection
+    @Column(name = "attachment_data")
+    @Cascade(org.hibernate.annotations.CascadeType.ALL)
+    @CollectionTable(name = "request_entity_attachment_data", joinColumns = @JoinColumn(name = "helpdesk_request_id"))
+    private List<FileMetaData> files;
+
    private String email;
    @Enumerated(EnumType.STRING)
    private Status status;
-   private String filePath;
-   private LocalDateTime dueDate;
+
+    private LocalDateTime dueDate;
    private int sla;
    private String requester;
+   private String requesterUserName;
    private String requesterUnit;
 
     @ElementCollection

@@ -4,6 +4,7 @@ import javax.persistence.*;
 
 import CRM.project.dto.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Cascade;
@@ -16,6 +17,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Table(name = "helpdesk_users")
 @EntityListeners(AuditingEntityListener.class)
 public class Users extends TimeClass {
@@ -30,7 +32,10 @@ public class Users extends TimeClass {
     private String staffName;
     private String userEmail;
 
-    @Transient
+    @ElementCollection
+    @Column(name = "user_roles")
+    @Cascade(org.hibernate.annotations.CascadeType.ALL)
+    @CollectionTable(name = "helpdesk_users_user_roles", joinColumns = @JoinColumn(name = "user_id"))
     private List<String> userRoles;
 
     @Enumerated(EnumType.STRING)

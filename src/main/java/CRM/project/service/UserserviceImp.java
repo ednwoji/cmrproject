@@ -46,6 +46,7 @@ public class UserserviceImp implements UsersService {
             users.setUnitName(department1);
             users.setUserEmail(String.valueOf(data.get("email")));
             users.setStatus(UserStatus.ACTIVE);
+            users.setUserRoles((List<String>) data.get("role"));
 
             users.setAvailability(Availability.ONLINE);
             return usersRepository.save(users);

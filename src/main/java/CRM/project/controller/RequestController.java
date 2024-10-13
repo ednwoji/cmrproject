@@ -24,9 +24,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import static CRM.project.service.RequestService.DIRECTORY_PATH;
 
 @RestController
 @RequestMapping("/requests")
@@ -46,7 +51,7 @@ public class RequestController {
     @Autowired
     private UsersRepository usersRepository;
     @PostMapping("/createRequest")
-    public ResponseEntity<?> uploadImageToFIleSystem(@RequestParam(value = "attachments", required = false) MultipartFile file,
+    public ResponseEntity<?> uploadImageToFIleSystem(@RequestParam(value = "attachments", required = false) List<MultipartFile> files,
                                                      @RequestParam("requester") String requester,
                                                      RequestEntity requestEntity,
                                                      @RequestParam("title") String subject,
@@ -57,6 +62,8 @@ public class RequestController {
                                                      @RequestParam("subcategory") String subCategory,
                                                      @RequestParam("description") String description,
                                                      @RequestParam("technician") String technician) throws IOException {
+
+        log.info("Description::: {}", description);
         requestEntity.setSubject(subject);
         requestEntity.setUnit(unit.split("~~")[0]);
         requestEntity.setPriority(priority);
@@ -66,7 +73,7 @@ public class RequestController {
         requestEntity.setTechnician(technician);
         requestEntity.setEmail(email);
         log.info("Requester name is:: "+requestEntity.getRequester());
-        Map<String, String> uploadImage =requestService.uploadImageToFileSystem(file,requestEntity);
+        Map<String, String> uploadImage =requestService.uploadImageToFileSystem(files,requestEntity);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(uploadImage);
     }
@@ -82,22 +89,45 @@ public class RequestController {
 
 
     @PostMapping("/downloadRequest")
-    public ResponseEntity<?> downloadAttachmentsFromFileSystem(@RequestBody Map<String, String> data) throws IOException {
-        log.info(data.get("fileName"));
-        try {
-            byte[] imageData= Utils.readFile(data.get("filePath"));
+    public ResponseEntity<?> downloadAttachments(@RequestBody Map<String, String> data) {
+        String requestId = data.get("requestId");
 
-            HttpHeaders headers = new HttpHeaders();
-//            headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentType(MediaType.valueOf(data.get("fileType")));
-            headers.setContentDispositionFormData("attachment", data.get("fileName").split("\\.")[0]);
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .body(imageData);
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        Optional<RequestEntity> optionalRequest = requestRepository.findByRequestId(data.get("requestId"));
+
+        if (optionalRequest.isPresent()) {
+            RequestEntity request = optionalRequest.get();
+            List<FileMetaData> fileMetaDataList = request.getFiles();
+
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                 ZipOutputStream zos = new ZipOutputStream(baos)) {
+
+                for (FileMetaData fileMetaData : fileMetaDataList) {
+                    log.info("File meta Data is "+fileMetaData.toString());
+                    byte[] fileData = Utils.readFile(fileMetaData.getFilePath());
+                    ZipEntry zipEntry = new ZipEntry(fileMetaData.getName());
+                    zipEntry.setSize(fileData.length);
+                    zos.putNextEntry(zipEntry);
+                    zos.write(fileData);
+                    zos.closeEntry();
+                }
+
+                zos.finish();
+                byte[] zipData = baos.toByteArray();
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+                headers.setContentDispositionFormData("attachment", requestId + "_attachments.zip");
+
+                return ResponseEntity.ok()
+                        .headers(headers)
+                        .body(zipData);
+            } catch (IOException e) {
+                log.error("Error while creating zip file: ", e);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while downloading files");
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Request not found");
         }
-
     }
 
 
@@ -105,8 +135,16 @@ public class RequestController {
     public ResponseEntity<?> findRequestByUnit(@RequestBody Requestdto requestdto) {
 
         Optional<Department> department = departmentRepository.findByDepartmentName(requestdto.getDepartmentName());
+        List<RequestEntity> requests = new ArrayList<>();
         if(department.isPresent()) {
-            List<RequestEntity> requests = requestRepository.findByStatusAndUnitAndTechnician(Status.valueOf(requestdto.getStatus()), department.get().getDepartmentName(), requestdto.getTechnician());
+            if(requestdto.getStatus().equalsIgnoreCase("OPEN")) {
+                List<Status> excludedStatuses = Arrays.asList(Status.CLOSED, Status.RESOLVED);
+                requests = requestRepository.findByStatusNotInAndUnitAndTechnician(excludedStatuses,
+                        department.get().getDepartmentName(), requestdto.getTechnician());
+            }
+            else {
+                requests = requestRepository.findByStatusAndUnitAndTechnician(Status.valueOf(requestdto.getStatus()), department.get().getDepartmentName(), requestdto.getTechnician());
+            }
             return new ResponseEntity<>(requests, HttpStatus.OK);
         } else return new ResponseEntity<>(new Responses("90","Request could not be found", null),HttpStatus.OK);
     }
@@ -123,11 +161,21 @@ public class RequestController {
                requests = requestRepository.findByRequester(requestdto.getStaffName());
             }
             else {
-                if(requestdto.getStaffName() != null) {
-                    requests = requestRepository.findByRequesterAndStatus(requestdto.getStaffName(), Status.valueOf(requestdto.getStatus()));
-                }
+                if(requestdto.getStatus().equalsIgnoreCase("OPEN")) {
+                    List<Status> excludedStatuses = Arrays.asList(Status.CLOSED, Status.RESOLVED);
+
+                    if (requestdto.getStaffName() != null) {
+                    requests = requestRepository.findByRequesterAndStatusNotIn(requestdto.getStaffName(), excludedStatuses);
+                    } else {
+                    requests = requestRepository.findByRequesterUnitAndStatusNotIn(requestdto.getDepartmentName(), excludedStatuses);
+                    }
+            }
                 else {
-                    requests = requestRepository.findByRequesterUnitAndStatus(requestdto.getDepartmentName(), Status.valueOf(requestdto.getStatus()));
+                    if (requestdto.getStaffName() != null) {
+                        requests = requestRepository.findByRequesterAndStatus(requestdto.getStaffName(), Status.valueOf(requestdto.getStatus()));
+                    } else {
+                        requests = requestRepository.findByRequesterUnitAndStatus(requestdto.getDepartmentName(), Status.valueOf(requestdto.getStatus()));
+                    }
                 }
             }
             return new ResponseEntity<>(requests, HttpStatus.OK);
@@ -139,7 +187,6 @@ public class RequestController {
     @PostMapping("/fetchAllRequestsBank")
     public ResponseEntity<?> findAllRequests(@RequestBody Requestdto requestdto) {
         log.info("Incoming requests::: {} ",requestdto.toString());
-
         List<RequestEntity> fetchRequests = requestService.fetchAllRequestsByStatus(Status.valueOf(requestdto.getStatus()));
         return new ResponseEntity<>(fetchRequests, HttpStatus.OK);
     }
@@ -169,6 +216,50 @@ public class RequestController {
     }
 
 
+    @PostMapping("/findRequest")
+    public ResponseEntity<?> getRequestById(@RequestBody Map<String, String> data) {
+        if(data.get("requestId") != null) {
+            Optional<RequestEntity> request = requestRepository.findByRequestId(data.get("requestId"));
+            if(request.isPresent()) {
+                return new ResponseEntity<>(new Responses<>("00","Success", request.get()), HttpStatus.OK);
+            }
+            return new ResponseEntity<>(new Responses<>("42","Failure", null), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new Responses<>("90","Invalid request ID", null), HttpStatus.OK);
+    }
+
+
+    @PostMapping("/additionalInfo")
+    public ResponseEntity<?> addMoreInfoToRequest(@RequestParam(value = "attachments", required = false)List<MultipartFile> files,
+                                                  @RequestParam("requestId") String requestId,
+                                                  @RequestParam("staffName") String staffName,
+                                                  @RequestParam("comments") String comments) {
+
+        log.info("Comments::: "+comments);
+        RequestEntity request = requestRepository.findByRequestId(requestId).orElse(null);
+        if(request != null) {
+            request.getCommentData().add(new CommentData(staffName,comments,LocalDateTime.now()));
+            if (files != null && !files.isEmpty()) {
+                for(MultipartFile file: files) {
+                    String filePath = requestService.saveFileToStorage(file);
+                    FileMetaData fileMetaData = new FileMetaData();
+                    fileMetaData.setFilePath(DIRECTORY_PATH + filePath);
+                    fileMetaData.setName(file.getOriginalFilename());
+                    fileMetaData.setType(file.getContentType());
+                    request.getFiles().add(fileMetaData);
+                }
+            }
+            AuditTrail newAudit = new AuditTrail(staffName, "Provided additional information", LocalDateTime.now());
+            request.setStatus(Status.OPEN);
+            request.getAuditTrails().add(newAudit);
+
+            requestRepository.save(request);
+            return new ResponseEntity<>(new Responses<>("00", "Saved successfully", null), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new Responses<>("45", "Invalid request", null), HttpStatus.BAD_REQUEST);
+    }
+
+
     @PostMapping("/closeRequest")
     public ResponseEntity<?> closeTicket(@RequestBody Map<String, String> data) {
 
@@ -195,10 +286,32 @@ public class RequestController {
                 request.setResolvedWithinSla(request.getDueDate().isAfter(request.getResolutionTime()));
             }
 
-            if(Status.valueOf(data.get("status")) == Status.CLOSED) {
+            else if(Status.valueOf(data.get("status")) == Status.CLOSED) {
                 AuditTrail newAudit = new AuditTrail(request.getRequester(), "Marked request as closed", LocalDateTime.now());
                 request.getAuditTrails().add(newAudit);
                 request.setClosureTime(LocalDateTime.now());
+            } else if(Status.valueOf(data.get("status")) == Status.ADDITIONAL_INFORMATION) {
+                AuditTrail newAudit = new AuditTrail(request.getTechnician(), "requested for additional information", LocalDateTime.now());
+                request.getAuditTrails().add(newAudit);
+                request.setResolutionTime(LocalDateTime.now());
+                request.setResolutionTechnician(data.get("closedBy"));
+                request.setResolvedWithinSla(request.getDueDate().isAfter(request.getResolutionTime()));
+            }
+
+            else if(Status.valueOf(data.get("status")) == Status.ON_HOLD) {
+                AuditTrail newAudit = new AuditTrail(request.getTechnician(), "Placed request on hold", LocalDateTime.now());
+                request.getAuditTrails().add(newAudit);
+                request.setResolutionTime(LocalDateTime.now());
+                request.setResolutionTechnician(data.get("closedBy"));
+                request.setResolvedWithinSla(request.getDueDate().isAfter(request.getResolutionTime()));
+            }
+
+            else if(Status.valueOf(data.get("status")) == Status.WORK_IN_PROGRESS) {
+                AuditTrail newAudit = new AuditTrail(request.getTechnician(), "request is a work in progress", LocalDateTime.now());
+                request.getAuditTrails().add(newAudit);
+                request.setResolutionTime(LocalDateTime.now());
+                request.setResolutionTechnician(data.get("closedBy"));
+                request.setResolvedWithinSla(request.getDueDate().isAfter(request.getResolutionTime()));
             }
 
             requestRepository.save(request);

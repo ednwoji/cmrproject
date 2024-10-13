@@ -1,6 +1,7 @@
 package CRM.project.service;
 
 import CRM.project.entity.Category;
+import CRM.project.entity.Department;
 import CRM.project.entity.SubCategory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,4 +20,6 @@ public interface SubCategoryService {
     void deleteSubCategories(Long id);
 
     List<SubCategory> uploadCategories(MultipartFile file) throws IOException;
+
+    Department fetchSubCategoriesByDept(String subCategoryName);
 }

@@ -59,15 +59,6 @@ public class ExcelToCategoryutils {
                         String categoryName= formatter.formatCellValue(c1,evaluator);
                         category.setCategoryName(categoryName);
                     }
-                    Cell c2= row.getCell(2,Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
-                    if (c2!=null){
-                        DataFormatter formatter=new DataFormatter();
-                         String unitName= formatter.formatCellValue(c2,evaluator);
-                         Optional<Department> department=departmentRepository.findByDepartmentName(unitName);
-                         if (department.isPresent()){
-                             category.setUnitName(department.get());
-                         }
-                    }
                 }
                 categories.add(category);
             }

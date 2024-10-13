@@ -32,7 +32,7 @@ import static CRM.project.utils.ExcelToCategoryutils.getRolesForUser;
 @Slf4j
 public class RequestService {
 
-    static String DIRECTORY_PATH = "/u01/uploads/";
+    public static String DIRECTORY_PATH = "/u01/uploads/";
     @Autowired
     private RequestRepository requestRepository;
 
@@ -49,21 +49,29 @@ public class RequestService {
     private EmailServiceImpl emailService;
 
 
-    public Map<String, String> uploadImageToFileSystem(MultipartFile file, RequestEntity requestEntity) throws IOException {
+    public Map<String, String> uploadImageToFileSystem(List<MultipartFile> files, RequestEntity requestEntity) throws IOException {
         Map<String, String> responseData = new HashMap<>();
         SubCategory sub = subCategoryRepository.findBySubCategoryName(requestEntity.getSubCategory()).orElse(null);
-        if(sub != null) {
+        Department department = departmentRepository.findByDepartmentName(requestEntity.getUnit()).orElse(null);
+        if(department != null && sub != null) {
             requestEntity.setSla(sub.getSla());
             requestEntity.setDueDate(LocalDateTime.now().plusHours((long) sub.getSla()));
-
-            if (file != null) {
-                String filePath = saveFileToStorage(file);
-                requestEntity.setFilePath(DIRECTORY_PATH + filePath);
-                requestEntity.setType(file.getContentType());
-                requestEntity.setName(file.getOriginalFilename());
+            List<FileMetaData> data = new ArrayList<>();
+            if (files != null && !files.isEmpty()) {
+                for (MultipartFile file : files) {
+                    log.info("In here::::");
+                    String filePath = saveFileToStorage(file);
+                    FileMetaData fileMetaData = new FileMetaData();
+                    fileMetaData.setFilePath(DIRECTORY_PATH + filePath);
+                    fileMetaData.setType(file.getContentType());
+                    fileMetaData.setName(file.getOriginalFilename());
+                    log.info(fileMetaData.toString());
+                    data.add(fileMetaData);
+                }
+                requestEntity.setFiles(data);
             }
 
-            if(requestEntity.getTechnician().equalsIgnoreCase("Unassigned")) {
+            if(requestEntity.getTechnician().equalsIgnoreCase("Unassigned") && department.isAutoAssign()) {
                 String technician = findLeastAssignedTechnician(requestEntity.getUnit());
                 if(technician != null) {
                     requestEntity.setTechnician(technician);
@@ -74,6 +82,10 @@ public class RequestService {
                     requestEntity.setTechnician("Unassigned");
                 }
             }
+            if(!department.isAutoAssign()) {
+                requestEntity.setTechnician("Unassigned");
+            }
+
             requestEntity.setStatus(Status.OPEN);
             requestEntity.setResolvedWithinSla(true);
             requestEntity.setLogTime(LocalDateTime.now());
@@ -84,11 +96,11 @@ public class RequestService {
                 responseData.put("message", "Request saved successfully");
                 responseData.put("requestId", storeData.getRequestId());
 
-                try{
-                    emailService.sendEmail(requestEntity, MessagePreference.OPEN,null);
-                }catch (Exception e) {
-                    e.printStackTrace();
-                }
+//                try{
+//                    emailService.sendEmail(requestEntity, MessagePreference.OPEN,null);
+//                }catch (Exception e) {
+//                    e.printStackTrace();
+//                }
             }catch(Exception e) {
                 responseData.put("code", "90");
                 responseData.put("message", "Failed to save request");
@@ -97,7 +109,7 @@ public class RequestService {
 
         else {
             responseData.put("code", "99");
-            responseData.put("message", "Invalid Sub-Category");
+            responseData.put("message", "Invalid Department");
         }
         return responseData;
     }
@@ -163,7 +175,7 @@ public class RequestService {
 
     }
 
-    private String saveFileToStorage(MultipartFile file) {
+    public String saveFileToStorage(MultipartFile file) {
 
         String extensionType = file.getContentType();
 
@@ -265,6 +277,10 @@ public class RequestService {
 //    }
 
     public List<RequestEntity> fetchAllRequestsByStatus(Status status) {
+        List<Status> excludedStatuses = Arrays.asList(Status.CLOSED, Status.RESOLVED);
+        if(status == Status.OPEN) {
+            return requestRepository.findByStatusNotIn(excludedStatuses);
+        }
         return requestRepository.findByStatus(status);
     }
 }

@@ -28,6 +28,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.transaction.Transactional;
+
 import static CRM.project.utils.ExcelToCategoryutils.getRolesForUser;
 
 @RestController
@@ -66,7 +68,7 @@ public class UsersController {
     public ResponseEntity<?> validateUser(@RequestBody Map<String, String> userDetails) throws Exception {
 
         if(userDetails.get("username").equalsIgnoreCase("admin")) {
-            Department department = new Department(1L, "Database", "operations@gmail.com", null);
+            Department department = new Department(1L, "Database", "operations@gmail.com",false, null);
             List<String> roles = Arrays.asList("user", "admin");
             Users users = new Users(1L, department, "Admin Admin","admin",null, UserStatus.ACTIVE, Availability.ONLINE, null);
             UserDto userDto = new UserDto(users, roles, null);
@@ -74,18 +76,17 @@ public class UsersController {
         }
 
         if(userDetails.get("username").equalsIgnoreCase("donjoku")) {
-            Department department = new Department(1L, "Database", "database@gmail.com", null);
-            List<String> roles = Arrays.asList("user", "admin");
-            Users users = new Users(1L, department, "Daniel Okoroafor","donjoku",null, UserStatus.ACTIVE, Availability.ONLINE, null);
+            Department department = new Department(1L, "Database", "database@gmail.com",false,  null);
+            List<String> roles = Arrays.asList("user");
+            Users users = new Users(1L, department, "John Paul","donjoku",null, UserStatus.ACTIVE, Availability.ONLINE, null);
             UserDto userDto = new UserDto(users, roles, null);
             return new ResponseEntity<>(new Responses<>("00", "Success", userDto), HttpStatus.OK);
         }
 
 
-
         if(userDetails.get("username").equalsIgnoreCase("potokunbo")) {
-            Department department = new Department(1L, "Operations", "operations@gmail.com", null);
-            List<String> roles = Arrays.asList("user", "technician");
+            Department department = new Department(1L, "Operations", "operations@gmail.com",false, null);
+            List<String> roles = Arrays.asList("user","technician");
             Users users = new Users(1L, department, "Patrick Tokunbo","potokunbo",null, UserStatus.ACTIVE, Availability.ONLINE, null);
             UserDto userDto = new UserDto(users, roles, null);
             return new ResponseEntity<>(new Responses<>("00", "Success", userDto), HttpStatus.OK);
@@ -97,24 +98,31 @@ public class UsersController {
         boolean validation = authenticateUser(userDetails.get("username"), userDetails.get("password"));
         if (validation) {
             List<String> userRoles = new ArrayList<>();
-            try {
-                userRoles = getRolesForUser(userDetails.get("username"));
-                log.info("User roles::: " + userRoles.toString());
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
             Users users = usersService.fetchStaffByName(userDetails.get("username"));
             if(users == null) {
-                return new ResponseEntity<>(new Responses<>("45", "User not profiled on application", null), HttpStatus.OK);
+                users = Utils.getUserProfile(userDetails.get("username"));
+                userRoles.add("user");
             }
-            if(userRoles.isEmpty()) {
-                return new ResponseEntity<>(new Responses<>("45", "Please engage Access Control for access", null), HttpStatus.OK);
+            else {
+                userRoles = users.getUserRoles();
             }
-            UserDto userDto = new UserDto(users, userRoles, Utils.getAuthServToken());
+//            UserDto userDto = new UserDto(users, userRoles, Utils.getAuthServToken());
+            UserDto userDto = new UserDto(users, userRoles,null);
             return new ResponseEntity<>(new Responses<>("00", "Success", userDto), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(new Responses<>("99", "Wrong credentials", null), HttpStatus.OK);
         }
+    }
+
+
+    @PostMapping("/fetchUserDetails")
+    public ResponseEntity<?> fetchUserDetails(@RequestBody Map<String, String> data) {
+        String username = data.get("username");
+        Users users = Utils.getUserProfile(username);
+        if(users != null) {
+            return new ResponseEntity<>(new Responses<>("00", "Profile retrieved", users), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new Responses("99", "Profile retrieval failed", null), HttpStatus.BAD_REQUEST);
     }
 
     @PostMapping("/disableUser")
@@ -130,6 +138,7 @@ public class UsersController {
 
     @PostMapping("/addUser")
     public ResponseEntity<?> addUser(@RequestBody Map<String, Object> data) {
+        log.info("Incoming request:::: "+data.toString());
         Users user1 = usersService.addNewUser(data);
         return (user1 != null) ? new ResponseEntity<>(new Responses("00", "User details Saved Successfully", null), HttpStatus.OK)
                 : new ResponseEntity<>(new Responses("99", "Record not saved, Ensure staff name has not been created", null), HttpStatus.OK);
@@ -149,7 +158,7 @@ public class UsersController {
     @PostMapping("/findByUnit")
     public ResponseEntity<?> fetchByUnit(@RequestBody Requestdto requestdto) {
         List<Users> usersList = usersService.fetchStaffByUnit(requestdto.getUnitName());
-        if(!usersList.isEmpty()) {
+        if(usersList != null && !usersList.isEmpty()) {
             for (Users user : usersList) {
                 user.setUserRoles(getRolesForUser(user.getUserEmail()));
             }
@@ -238,12 +247,14 @@ public class UsersController {
 
 
     @PostMapping("/updateuser")
-    public ResponseEntity<?> EditUserDepartment(@RequestBody Map<String, String> data) {
-        Department department = departmentService.findDepartmentById(data.get("deptId"));
-        if(department != null) {
-            Users users = usersService.fetchUserById(Long.valueOf(data.get("userId")));
+    @Transactional
+    public ResponseEntity<?> EditUserDepartment(@RequestBody Map<String, Object> data) {
+        Department department = departmentService.findDepartmentById(String.valueOf(data.get("deptId")));
+        if(department != null && data.get("role") != null) {
+            Users users = usersService.fetchUserById(Long.valueOf(String.valueOf(data.get("userId"))));
             if(users != null) {
                 users.setUnitName(department);
+                users.setUserRoles((List<String>) data.get("role"));
                 usersService.saveUser(users);
                 return new ResponseEntity<>(new Responses<>("00", "User Updated Successfully", null), HttpStatus.OK);
             }

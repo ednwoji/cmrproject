@@ -40,11 +40,11 @@ public class CategoryServiceImp implements CategoryService {
         return null;
     }
 
-    @Override
-    public List<Category> getAllCategory(Category category) {
-        Department department1=departmentRepository.findByDepartmentName(category.getDepartment()).orElse(null);
-        return department1!=null? categoryRepository.findByUnitName(department1): null;
-    }
+//    @Override
+//    public List<Category> getAllCategory(Category category) {
+//        Department department1=departmentRepository.findByDepartmentName(category.getDepartment()).orElse(null);
+//        return department1!=null? categoryRepository.findByUnitName(department1): null;
+//    }
 
     @Override
     public List<Category> fetchCategories() {
@@ -79,8 +79,6 @@ public class CategoryServiceImp implements CategoryService {
                             Category category = new Category();
                             Row row = sheet.getRow(i);
                             category.setCategoryName(row.getCell(1).getStringCellValue());
-                            category.setUnitName(departmentRepository.findByDepartmentName(row.getCell(2).getStringCellValue()).orElse(null));
-
                             return category;
                         }catch(Exception e) {
                             return null;

@@ -114,4 +114,13 @@ public class SubCategoryImp implements SubCategoryService {
         }
 
     }
+
+    @Override
+    public Department fetchSubCategoriesByDept(String subCategoryName) {
+        Optional<SubCategory> bySubCategoryName = subCategoryRepository.findBySubCategoryName(subCategoryName);
+        if(bySubCategoryName.isPresent()) {
+            return bySubCategoryName.get().getDepartment();
+        }
+        return null;
+    }
 }

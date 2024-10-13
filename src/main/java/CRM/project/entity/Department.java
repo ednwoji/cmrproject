@@ -16,6 +16,7 @@ public class Department extends TimeClass {
    private Long departmentId;
    private String departmentName;
    private String email;
+   private boolean autoAssign = true;
    @Transient
    private String creationType;
 }

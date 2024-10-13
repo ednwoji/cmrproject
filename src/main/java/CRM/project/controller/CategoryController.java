@@ -41,9 +41,8 @@ public class CategoryController {
                 : new ResponseEntity<>(new Responses("99", "Record not saved, Ensure category name does not exist", null), HttpStatus.OK);
     }
     @PostMapping("/allCategory")
-    public ResponseEntity<?> getAllCategoryByDepartment(@RequestBody Category category){
-        log.info("Getting all categories "+category.toString());
-        List<Category> categories=categoryService.getAllCategory(category);
+    public ResponseEntity<?> getAllCategoryByDepartment(){
+        List<Category> categories=categoryService.fetchCategories();
         return ResponseEntity.ok(categories);
     }
 

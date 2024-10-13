@@ -14,7 +14,6 @@ import java.util.Optional;
 
 @Repository
 public interface RequestRepository extends JpaRepository<RequestEntity,Integer> {
-    Optional<RequestEntity> findByName(String fileName);
 
     List<RequestEntity> findByUnit(String unit);
 
@@ -51,4 +50,12 @@ public interface RequestRepository extends JpaRepository<RequestEntity,Integer> 
     List<Object[]> findRequestsGroupedByMonth(@Param("username") String username);
 
     Optional<RequestEntity> findByRequestId(String requestId);
+
+    List<RequestEntity> findByStatusNotInAndUnitAndTechnician(List<Status> excludedStatuses, String departmentName, String technician);
+
+    List<RequestEntity> findByRequesterAndStatusNotIn(String staffName, List<Status> excludedStatuses);
+
+    List<RequestEntity> findByRequesterUnitAndStatusNotIn(String departmentName, List<Status> excludedStatuses);
+
+    List<RequestEntity> findByStatusNotIn(List<Status> excludedStatuses);
 }

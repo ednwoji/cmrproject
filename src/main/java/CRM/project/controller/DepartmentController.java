@@ -34,7 +34,7 @@ public class DepartmentController {
     {
         log.info("Incoming request::::: "+department);
         Department department1=departmentService.addNewDepartment(department);
-        return department1!=null? new ResponseEntity<>(new Responses("00", "department details Saved Successfully", null), HttpStatus.OK)
+        return department1!=null? new ResponseEntity<>(new Responses("00", "department details Saved Successfully", department1), HttpStatus.OK)
                 : new ResponseEntity<>(new Responses("99", "Record not saved, Ensure department name does not exist", null), HttpStatus.OK);
     }
 
@@ -64,4 +64,5 @@ public class DepartmentController {
         List<Department> listAllDepartments = departmentService.getDepartments();
         return new ResponseEntity<>(listAllDepartments, HttpStatus.OK);
     }
+
 }
