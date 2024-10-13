@@ -26,4 +26,8 @@ public class Requestdto {
     private String staffName;
     private long categoryId;
     private String categoryName;
+    private int page;
+    private int size;
+    private String search;
+
 }

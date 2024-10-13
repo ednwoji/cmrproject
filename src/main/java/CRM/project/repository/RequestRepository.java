@@ -3,11 +3,13 @@ package CRM.project.repository;
 import CRM.project.entity.Department;
 import CRM.project.entity.RequestEntity;
 import CRM.project.entity.Status;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +19,7 @@ public interface RequestRepository extends JpaRepository<RequestEntity,Integer> 
 
     List<RequestEntity> findByUnit(String unit);
 
-    List<RequestEntity> findByStatus(Status status);
+    Page<RequestEntity> findByStatus(Status status, Pageable pageable);
 
     List<RequestEntity> findByStatusAndUnit(Status status, String department);
 
@@ -25,13 +27,13 @@ public interface RequestRepository extends JpaRepository<RequestEntity,Integer> 
 
     List<RequestEntity> findByCreatedTimeBetween(LocalDateTime localDateTime, LocalDateTime localDateTime1);
 
-    List<RequestEntity> findByRequesterAndStatus(String staffName, Status status);
+    Page<RequestEntity> findByRequesterAndStatus(String staffName, Status status, Pageable pageable);
 
-    List<RequestEntity> findByRequester(String staffName);
+    Page<RequestEntity> findByRequester(String staffName, Pageable pageable);
 
-    List<RequestEntity> findByStatusAndUnitAndTechnician(Status status, String departmentName, String technician);
+    Page<RequestEntity> findByStatusAndUnitAndTechnician(Status status, String departmentName, String technician, Pageable pageable);
 
-    List<RequestEntity> findByRequesterUnitAndStatus(String departmentName, Status status);
+    Page<RequestEntity> findByRequesterUnitAndStatus(String departmentName, Status status, Pageable pageable);
 
     List<RequestEntity> findByUnitAndCreatedTimeBetween(String unitName, LocalDateTime localDateTime, LocalDateTime localDateTime1);
 
@@ -51,11 +53,11 @@ public interface RequestRepository extends JpaRepository<RequestEntity,Integer> 
 
     Optional<RequestEntity> findByRequestId(String requestId);
 
-    List<RequestEntity> findByStatusNotInAndUnitAndTechnician(List<Status> excludedStatuses, String departmentName, String technician);
+    Page<RequestEntity> findByStatusNotInAndUnitAndTechnician(List<Status> excludedStatuses, String departmentName, String technician, Pageable pageable);
 
-    List<RequestEntity> findByRequesterAndStatusNotIn(String staffName, List<Status> excludedStatuses);
+    Page<RequestEntity> findByRequesterAndStatusNotIn(String staffName, List<Status> excludedStatuses, Pageable pageable);
 
-    List<RequestEntity> findByRequesterUnitAndStatusNotIn(String departmentName, List<Status> excludedStatuses);
+    Page<RequestEntity> findByRequesterUnitAndStatusNotIn(String departmentName, List<Status> excludedStatuses, Pageable pageable);
 
-    List<RequestEntity> findByStatusNotIn(List<Status> excludedStatuses);
+    Page<RequestEntity> findByStatusNotIn(List<Status> excludedStatuses, Pageable pageable);
 }

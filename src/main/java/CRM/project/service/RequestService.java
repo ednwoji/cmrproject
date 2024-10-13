@@ -10,6 +10,8 @@ import CRM.project.repository.SubCategoryRepository;
 import CRM.project.repository.UsersRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
@@ -276,11 +278,11 @@ public class RequestService {
 //      return Files.readAllBytes(Paths.get(filePath));
 //    }
 
-    public List<RequestEntity> fetchAllRequestsByStatus(Status status) {
+    public Page<RequestEntity> fetchAllRequestsByStatus(Status status, Pageable pageable) {
         List<Status> excludedStatuses = Arrays.asList(Status.CLOSED, Status.RESOLVED);
         if(status == Status.OPEN) {
-            return requestRepository.findByStatusNotIn(excludedStatuses);
+            return requestRepository.findByStatusNotIn(excludedStatuses, pageable);
         }
-        return requestRepository.findByStatus(status);
+        return requestRepository.findByStatus(status, pageable);
     }
 }

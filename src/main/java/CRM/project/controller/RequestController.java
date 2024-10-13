@@ -13,9 +13,10 @@ import CRM.project.service.EmailServiceImpl;
 import CRM.project.service.RequestService;
 import CRM.project.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.Response;
-import org.apache.logging.log4j.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -135,18 +136,20 @@ public class RequestController {
     public ResponseEntity<?> findRequestByUnit(@RequestBody Requestdto requestdto) {
 
         Optional<Department> department = departmentRepository.findByDepartmentName(requestdto.getDepartmentName());
-        List<RequestEntity> requests = new ArrayList<>();
+        Page<RequestEntity> requests;
         if(department.isPresent()) {
+            Pageable pageable = PageRequest.of(requestdto.getPage(), requestdto.getSize());
+
             if(requestdto.getStatus().equalsIgnoreCase("OPEN")) {
                 List<Status> excludedStatuses = Arrays.asList(Status.CLOSED, Status.RESOLVED);
                 requests = requestRepository.findByStatusNotInAndUnitAndTechnician(excludedStatuses,
-                        department.get().getDepartmentName(), requestdto.getTechnician());
+                        department.get().getDepartmentName(), requestdto.getTechnician(), pageable);
             }
             else {
-                requests = requestRepository.findByStatusAndUnitAndTechnician(Status.valueOf(requestdto.getStatus()), department.get().getDepartmentName(), requestdto.getTechnician());
+                requests = requestRepository.findByStatusAndUnitAndTechnician(Status.valueOf(requestdto.getStatus()), department.get().getDepartmentName(), requestdto.getTechnician(), pageable);
             }
             return new ResponseEntity<>(requests, HttpStatus.OK);
-        } else return new ResponseEntity<>(new Responses("90","Request could not be found", null),HttpStatus.OK);
+        } else return new ResponseEntity<>(new Responses<>("90","Request could not be found", null),HttpStatus.OK);
     }
 
 
@@ -156,25 +159,27 @@ public class RequestController {
         log.info("Incoming request::: "+requestdto.toString());
 //        Users user = usersRepository.findByStaffName(requestdto.getStaffName()).orElse(null);
 //        if(user!=null) {
-            List<RequestEntity> requests = null;
-            if(requestdto.getStatus() == null) {
-               requests = requestRepository.findByRequester(requestdto.getStaffName());
+//            List<RequestEntity> requests = null;
+            Page<RequestEntity> requests;
+        Pageable pageable = PageRequest.of(requestdto.getPage(), requestdto.getSize());
+        if(requestdto.getStatus() == null) {
+               requests = requestRepository.findByRequester(requestdto.getStaffName(), pageable);
             }
             else {
                 if(requestdto.getStatus().equalsIgnoreCase("OPEN")) {
                     List<Status> excludedStatuses = Arrays.asList(Status.CLOSED, Status.RESOLVED);
 
                     if (requestdto.getStaffName() != null) {
-                    requests = requestRepository.findByRequesterAndStatusNotIn(requestdto.getStaffName(), excludedStatuses);
+                    requests = requestRepository.findByRequesterAndStatusNotIn(requestdto.getStaffName(), excludedStatuses, pageable);
                     } else {
-                    requests = requestRepository.findByRequesterUnitAndStatusNotIn(requestdto.getDepartmentName(), excludedStatuses);
+                    requests = requestRepository.findByRequesterUnitAndStatusNotIn(requestdto.getDepartmentName(), excludedStatuses, pageable);
                     }
             }
                 else {
                     if (requestdto.getStaffName() != null) {
-                        requests = requestRepository.findByRequesterAndStatus(requestdto.getStaffName(), Status.valueOf(requestdto.getStatus()));
+                        requests = requestRepository.findByRequesterAndStatus(requestdto.getStaffName(), Status.valueOf(requestdto.getStatus()), pageable);
                     } else {
-                        requests = requestRepository.findByRequesterUnitAndStatus(requestdto.getDepartmentName(), Status.valueOf(requestdto.getStatus()));
+                        requests = requestRepository.findByRequesterUnitAndStatus(requestdto.getDepartmentName(), Status.valueOf(requestdto.getStatus()), pageable);
                     }
                 }
             }
@@ -187,7 +192,8 @@ public class RequestController {
     @PostMapping("/fetchAllRequestsBank")
     public ResponseEntity<?> findAllRequests(@RequestBody Requestdto requestdto) {
         log.info("Incoming requests::: {} ",requestdto.toString());
-        List<RequestEntity> fetchRequests = requestService.fetchAllRequestsByStatus(Status.valueOf(requestdto.getStatus()));
+        Pageable pageable = PageRequest.of(requestdto.getPage(), requestdto.getSize());
+        Page<RequestEntity> fetchRequests = requestService.fetchAllRequestsByStatus(Status.valueOf(requestdto.getStatus()), pageable);
         return new ResponseEntity<>(fetchRequests, HttpStatus.OK);
     }
 
