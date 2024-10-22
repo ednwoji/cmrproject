@@ -102,6 +102,9 @@ public class UsersController {
             if(users == null) {
                 users = Utils.getUserProfile(userDetails.get("username"));
                 userRoles.add("user");
+                if(users == null) {
+                    return new ResponseEntity<>(new Responses<>("45", "User does not exist on the AD", null), HttpStatus.BAD_REQUEST);
+                }
             }
             else {
                 userRoles = users.getUserRoles();
@@ -119,6 +122,7 @@ public class UsersController {
     public ResponseEntity<?> fetchUserDetails(@RequestBody Map<String, String> data) {
         String username = data.get("username");
         Users users = Utils.getUserProfile(username);
+        log.info("Users retrieved is::: "+users);
         if(users != null) {
             return new ResponseEntity<>(new Responses<>("00", "Profile retrieved", users), HttpStatus.OK);
         }

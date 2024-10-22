@@ -1,9 +1,6 @@
 package CRM.project.controller;
 
-import CRM.project.dto.BulkDto;
-import CRM.project.dto.CommentData;
-import CRM.project.dto.MessagePreference;
-import CRM.project.dto.Requestdto;
+import CRM.project.dto.*;
 import CRM.project.entity.*;
 import CRM.project.repository.DepartmentRepository;
 import CRM.project.repository.RequestRepository;
@@ -12,6 +9,12 @@ import CRM.project.response.Responses;
 import CRM.project.service.EmailServiceImpl;
 import CRM.project.service.RequestService;
 import CRM.project.utils.Utils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.Response;
 import org.apache.logging.log4j.util.Timer;
@@ -132,7 +135,7 @@ public class RequestController {
 
 
     @PostMapping("/findRequestByUnit")
-    public ResponseEntity<?> findRequestByUnit(@RequestBody Requestdto requestdto) {
+    public ResponseEntity<?> findRequestByUnit(@RequestBody Requestdto requestdto) throws JsonProcessingException {
 
         Optional<Department> department = departmentRepository.findByDepartmentName(requestdto.getDepartmentName());
         List<RequestEntity> requests = new ArrayList<>();
@@ -145,17 +148,18 @@ public class RequestController {
             else {
                 requests = requestRepository.findByStatusAndUnitAndTechnician(Status.valueOf(requestdto.getStatus()), department.get().getDepartmentName(), requestdto.getTechnician());
             }
-            return new ResponseEntity<>(requests, HttpStatus.OK);
-        } else return new ResponseEntity<>(new Responses("90","Request could not be found", null),HttpStatus.OK);
+
+            List<RequestResponse> responses = Utils.mapRequestsToDto(requests);
+            return new ResponseEntity<>(responses, HttpStatus.OK);
+        } else return new ResponseEntity<>(new Responses<>("90","Request could not be found", null),HttpStatus.OK);
     }
 
 
     @PostMapping("/findRequestByRequester")
-    public ResponseEntity<?> findRequestByRequester(@RequestBody Requestdto requestdto) {
+    public ResponseEntity<?> findRequestByRequester(@RequestBody Requestdto requestdto) throws JsonProcessingException {
 
         log.info("Incoming request::: "+requestdto.toString());
-//        Users user = usersRepository.findByStaffName(requestdto.getStaffName()).orElse(null);
-//        if(user!=null) {
+
             List<RequestEntity> requests = null;
             if(requestdto.getStatus() == null) {
                requests = requestRepository.findByRequester(requestdto.getStaffName());
@@ -178,17 +182,19 @@ public class RequestController {
                     }
                 }
             }
-            return new ResponseEntity<>(requests, HttpStatus.OK);
+        List<RequestResponse> responses = Utils.mapRequestsToDto(requests);
+        return new ResponseEntity<>(responses, HttpStatus.OK);
 //        } else
 //            return new ResponseEntity<>(new Responses("90","Request could not be found"),HttpStatus.OK);
     }
 
 
     @PostMapping("/fetchAllRequestsBank")
-    public ResponseEntity<?> findAllRequests(@RequestBody Requestdto requestdto) {
+    public ResponseEntity<?> findAllRequests(@RequestBody Requestdto requestdto) throws JsonProcessingException {
         log.info("Incoming requests::: {} ",requestdto.toString());
         List<RequestEntity> fetchRequests = requestService.fetchAllRequestsByStatus(Status.valueOf(requestdto.getStatus()));
-        return new ResponseEntity<>(fetchRequests, HttpStatus.OK);
+        List<RequestResponse> responses = Utils.mapRequestsToDto(fetchRequests);
+        return new ResponseEntity<>(responses, HttpStatus.OK);
     }
 
     @PostMapping("/updateRequestTechnician")
